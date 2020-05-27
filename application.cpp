@@ -46,14 +46,28 @@ void findAllOccurances(vector<int> & vec, string data, string toSearch)
 
 string _asn1int(const ASN1_INTEGER *input)
 {
-    static const char hexbytes[] = "0123456789ABCDEF";
-    stringstream ashex;
-    for(int i=0; i<input->length; i++)
-    {
-        ashex << hexbytes[ (input->data[i] & 0xf0) >>4  ] ;
-        ashex << hexbytes[ (input->data[i] & 0x0f) >>0  ] ;
-    }
-    return ashex.str();
+	BIGNUM *bn = ASN1_INTEGER_to_BN(input, NULL);
+	if(!bn) {
+		cout<<"Error converting ASN1INT to BIGNUM"<<endl;
+		exit(-1);
+	}
+
+	char *tmp = BN_bn2hex(bn);
+	if(!bn) {
+		cout<<"Error converting BIGNUM to char*"<<endl;
+		BN_free(bn);
+		exit(-1);
+	}
+
+	string asn1string(tmp);
+	
+	//Debug
+	// cout<<"Func -> ASN1ToInt, return value = "<<asn1string<<endl;
+
+	OPENSSL_free(tmp);
+	BN_free(bn);
+
+	return asn1string;
 }
 
 string getSerialNumber(X509* x509)
