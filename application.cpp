@@ -4,7 +4,6 @@
 
 #include<bits/stdc++.h>
 #include <fstream>
-
 #include <openssl/pem.h>
 #include <openssl/x509.h>
 #include <openssl/x509v3.h>
@@ -13,22 +12,22 @@
 using namespace std;
 
 
-string checkIfFileHasBeenDraggedIn (string input)
+string checkIfFileHasBeenDraggedIn(string inputString)
 {
-	string temp = input;
-	if(temp[0] != '/')// yes it has been dragged and dropped. contains ' at start and end which is to be removed.
+	string temp = inputString;
+
+	if(temp[0] != '/')// Yes, the file has been dragged and dropped into the console. contains single quote (') at both start and end which has to be removed.
 	{
 		// remove the first and last chars
 		temp.erase(temp.begin() + 0);
 		temp.erase(temp.end() - 1);
-		input = temp;
 	}
-	return input;
+	return temp;
 }
 
 
 
-//  Find all positions of the a SubString in given String
+//  Find all positions of the a subString in given string
 void findAllOccurances(vector<int> & vec, string data, string toSearch)
 {
 	// Get the first occurrence
@@ -41,18 +40,18 @@ void findAllOccurances(vector<int> & vec, string data, string toSearch)
 		vec.push_back(pos);
  
 		// Get the next occurrence from the current position
-		pos =data.find(toSearch, pos + toSearch.size());
+		pos = data.find(toSearch, pos + toSearch.size()  );
 	}
 }
 
-string _asn1int(ASN1_INTEGER *bs)
+string _asn1int(const ASN1_INTEGER *input)
 {
     static const char hexbytes[] = "0123456789ABCDEF";
     stringstream ashex;
-    for(int i=0; i<bs->length; i++)
+    for(int i=0; i<input->length; i++)
     {
-        ashex << hexbytes[ (bs->data[i]&0xf0)>>4  ] ;
-        ashex << hexbytes[ (bs->data[i]&0x0f)>>0  ] ;
+        ashex << hexbytes[ (input->data[i] & 0xf0) >>4  ] ;
+        ashex << hexbytes[ (input->data[i] & 0x0f) >>0  ] ;
     }
     return ashex.str();
 }
@@ -72,13 +71,12 @@ X509_CRL *new_CRL(const char* crl_filename)
 
 int main()
 {
-
 	OpenSSL_add_all_algorithms();
 	ERR_load_BIO_strings();
 
 
 
-	// intro message
+	// Display intro message.
 
 	cout<<"\nThis is a tool to validate a given certificate chain file against a given CRL. \n\n";
 	cout<<"----------------------------------\n\n";
@@ -93,7 +91,7 @@ int main()
 	cout<<"Alternatively, drag and drop the file into this terminal window."<<endl;
 	string certChainFilePath;
 	cin>>certChainFilePath;
-	// certChainFilePath = "'/home/hawkeyes/Desktop/123.pem'";
+
 	certChainFilePath = checkIfFileHasBeenDraggedIn(certChainFilePath);
 
 
@@ -117,30 +115,30 @@ int main()
 		exit(1);
 	}
 
-	// cout<<certChainFileContent<<endl;
 	
 
 
 
 
+	// Now, the contents of the pem file are in certChainFileContent string.
+	// All certificates all begin with "-----BEGIN CERTIFICATE-----"
+	// And end with "-----END CERTIFICATE-----"
+	// We need to extract serial numbers from all of them.
 
 
-	// find all occurences of -----BEGIN CERTIFICATE-----
-	vector<int> allOccurencesOfBeginCert;
+
+	// Find all occurences of -----BEGIN CERTIFICATE-----
+	vector<int> allOccurencesOfBeginCert; //This will store start indices of all certificates.
+
 	findAllOccurances(allOccurencesOfBeginCert, certChainFileContent, "-----BEGIN CERTIFICATE-----");
-/*
-	for(int i=0;i<allOccurencesOfBeginCert.size();i++)
-	{
-		cout<<allOccurencesOfBeginCert[i]<<" ";
-	}cout<<endl;
-*/
 
 
-	//separeate the certificates into individual pem files for open ssl to act on
+	// Separate the certificates data into individual strings for openssl to act on.
 	int numberOfCertificates = allOccurencesOfBeginCert.size();
 	int startIndex, endIndex, lengthOfThisCert;
 
-	vector<string> individualCertificates(numberOfCertificates);
+	vector<string> individualCertificates(numberOfCertificates);// Will contain all the individual certificate data as separate strings.
+
 
 	for(int i = 0 ; i < numberOfCertificates - 1 ; i++)//extract all certs except the last one
 	{
@@ -149,136 +147,113 @@ int main()
 
 		lengthOfThisCert = endIndex - startIndex;
 
-		individualCertificates[i] = certChainFileContent.substr(startIndex, lengthOfThisCert);
+		individualCertificates[i] = certChainFileContent.substr(startIndex, lengthOfThisCert); // Extract the individual cert which is a substring.
 	}
 
-	//extract the last one too
+	// Extract the last one too.
 	startIndex = allOccurencesOfBeginCert[numberOfCertificates-1];
 	endIndex = certChainFileContent.length();
 	lengthOfThisCert = endIndex - startIndex;
 
 	individualCertificates[numberOfCertificates-1] = certChainFileContent.substr( startIndex, lengthOfThisCert);
 
-/*	for(int i=0;i<allOccurencesOfBeginCert.size();i++)
-	{
-		cout<<"!!!"<<individualCertificates[i]<<"!!!"<<endl;
-	}cout<<endl;*/
 
-
-	//working till here
-
+	// Now that we have all individual certs in separate strings, we convert them to x509 format and then extract the serial numbers using openssl.
 	vector<string> chainFileSerialNumbers;
-	// now that we have all individual certs in separate strings, we convert them to x509 format and then extract the serial numbers
+	
 
 	for(int i = 0 ; i < numberOfCertificates ; i++)
 	{
-/*
-		//not necessary
-		string thisCertName;
-
-		//convert i to string
-		int length = snprintf( NULL, 0, "%d", i );//length of the char array
-		char *str = (char*)malloc( length );
-		snprintf( str, length + 1, "%d", i );
-
-		thisCertName = string("cert") + str + ".pem";
-		// cout<<thisCertName<<endl;
-
-		ofstream thisCertStream;
-		thisCertStream.open(thisCertName);
-		thisCertStream << individualCertificates[i];
-		thisCertStream.close();
-
-		*/
-
 		BIO *bio_mem = BIO_new(BIO_s_mem());
 		BIO_puts(bio_mem, individualCertificates[i].c_str());
-		X509 *thisCertInX509 = PEM_read_bio_X509(bio_mem, NULL, NULL, NULL);
-		chainFileSerialNumbers.push_back(getSerialNumber(thisCertInX509));
 
+		X509 *thisCertInX509 = PEM_read_bio_X509(bio_mem, NULL, NULL, NULL);
+		chainFileSerialNumbers.push_back(getSerialNumber(thisCertInX509)); // Add the serial number to the chainFileSerialNumbers vector.
 	}
 
-	cout<<"\nThese are the serial numbers in the chain file:"<<endl;
+	cout<<"\nThese are the serial numbers in the chain file:"<<endl; // Display all serial numbers in the chain file.
 	for(int i = 0 ; i < numberOfCertificates ; i++)
 	{
-		cout<<i<<". "<<chainFileSerialNumbers[i]<<endl;
-	}cout<<endl;
-
-	//we now have all serial number in the string vector chainFileSerialNumbers
-
-	//we can now compare these againt the serial numbers in the CRL file
-
-	//the serial numbers in the CRL files can be put in a hashmap for O(1) lookup
+		cout<<(i+1)<<". "<<chainFileSerialNumbers[i]<<endl;
+	}
+	cout<<endl;
 
 
+	// We now have all serial number in the string vector chainFileSerialNumbers.
+
+	// we can now compare these againt the serial numbers in the CRL file.
+
+	// In case the CRL is massive, it's serial numbers can be put in a hashmap for O(1) lookup.
 
 
 
-	// get the CRL file path
+
+
+	// Get the CRL file path from the user.
 
 	cout<<"Enter the full path of the CRL file. ";
 	cout<<"Alternatively, drag and drop the file into this terminal window."<<endl;
 	string CRLFilePath;
 	cin>>CRLFilePath;
-	// CRLFilePath = "'/home/pranav/Desktop/hpe_project/rfc5280_CRL.crl'";
+
 	CRLFilePath = checkIfFileHasBeenDraggedIn(CRLFilePath);
 
 
-	BIO *crlbio = NULL;
-	X509_CRL *CRLFileInX509  = NULL;
 
+	BIO *crlbio = NULL;
 	crlbio = BIO_new(BIO_s_file());
 
+	X509_CRL *CRLFileInX509  = NULL;
 
-	//load the CRL from file (DER format)
+
+	// Load the CRL from file (DER format).
 	if (BIO_read_filename(crlbio, CRLFilePath.c_str()) <= 0)
 	    cout<<"Error loading CRL into memory."<<endl;
 
 
-	// convert in X509 format for OpenSSLo work on
+	// Convert to X509 format for openssl to work on.
 	CRLFileInX509 = d2i_X509_CRL_bio(crlbio, NULL);
 
 
-	//get number of revoked certificates from the CRL
+	// Get the number of revoked certificates from the CRL.
 	STACK_OF(X509_REVOKED) *rev = NULL;
 	rev = X509_CRL_get_REVOKED(CRLFileInX509);
 
 	int numberOfRevokedCeritficates = sk_X509_REVOKED_num(rev);
 
-	// cout<<numberOfRevokedCeritficates<<endl;
 
 
-
-	//extract serial numbers of all revoked certificates.
+	// Extract serial numbers of all revoked certificates.
 
 	vector<string> revokedSerialNumbers;
 	X509_REVOKED *rev_entry = NULL;
+
 	for(int i = 0 ; i < numberOfRevokedCeritficates ; i++)
 	{
 		rev_entry = sk_X509_REVOKED_value(rev, i);
-		ASN1_INTEGER *temp;
-		temp = const_cast<ASN1_INTEGER*>(X509_REVOKED_get0_serialNumber(rev_entry));
-		// converting frm (const ASN1_INTEGER*) to (ASN1_INTEGER*) is dangerous, can cause crashes 
+		const ASN1_INTEGER *temp;
+		temp = (X509_REVOKED_get0_serialNumber(rev_entry));
 
-
-		revokedSerialNumbers.push_back(_asn1int(temp));
+		// temp has to converted to a string.
+		revokedSerialNumbers.push_back(_asn1int(temp)); // Add it to the revokedSerialNumbers vector.
 	}
 
-	//now we have 2 vectors: chainFileSerialNumbers and revokedSerialNumbers
-
-	cout<<"\nThese are the serial numbers in the CRL file:"<<endl;
+	cout<<"\nThese are the serial numbers in the CRL file:"<<endl; // Display all serial numbers in the CRT file.
 	for(int i = 0 ; i < numberOfRevokedCeritficates ; i++)
 	{
-		cout<<i<<". "<<revokedSerialNumbers[i]<<endl;
-	}cout<<endl;
+		cout<<(i+1)<<". "<<revokedSerialNumbers[i]<<endl;
+	}
+	cout<<endl;
 
 
 
-	// do the checking
+	// Now we have 2 vectors: chainFileSerialNumbers and revokedSerialNumbers.
+
+	// Do the checking => See if there is any cert from the chain file which is listed in the CRL. If there is, the chain file is NOT VALID.
 
 	for(int i=0;i<numberOfCertificates;i++)
 	{
-		string toBeChecked = individualCertificates[i];
+		string toBeChecked = individualCertificates[i]; // This cert's serial number (from the chain file) will be checked against all the CRT serial numbers.
 
 		for(int j=0;j<numberOfRevokedCeritficates;j++)
 		{
@@ -290,29 +265,9 @@ int main()
 		}
 	}
 
+
+	// If we reach till here, none of the chain file's certs have been revoked. It is a VALID CHAIN.
 	cout<<"None of the certificates in the chain have been revoked. This is a VALID CHAIN."<<endl;
-
-
-
-
-
-
-
-/*	X509_CRL *crl_file = new_CRL(CRLFilePath.c_str());
-	STACK_OF(X509_REVOKED) *revoked_list = crl_file->crl->revoked;
-	for (int j = 0; j < sk_X509_REVOKED_num(revoked_list); j++)
-    {
-        X509_REVOKED *entry = sk_X509_REVOKED_value(revoked_list, j);
-        cout<<entry->serialNumber<<"!!";
-    }*/
-
-
-	
-
-	
-
-
-
 
 	return 0;
 }

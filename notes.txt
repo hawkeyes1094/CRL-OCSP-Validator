@@ -1,0 +1,45 @@
+what are the ways to determine if a certificate is valid?
+1. use the digital sign to check if the cert has been tampered with
+2. check the name given in the cert with the actual website name to ensure they are matching
+3. compare the downloaded certificte with the one that came with the OS to make sure that the downloaded one is actually from VeriSign
+
+
+
+
+you need to trust who issued the cert to start using it
+
+imagine you are startin your own web store. the website has been designed and is ready to go live
+you need to BUY an ssl certificate to re assure users that the website is safe to use
+has to be purchased by a certificate authority eg VeriSignSet up automatic forwarding 
+the authority will research your company, check your references and make sure you actually ARE who you CLAIM to be online
+it will also encrypt any data that flows to and from your new site.
+ 
+
+
+ -------------
+ march 4
+ general idea is:
+ 1. create an input stream for the crt file which contains the whole chain of certificates
+ 2. run a loop. using the tags "-----BEGIN CERTIFICATE-----" and "-----END CERTIFICATE-----" to put all the certificates in defferent files because openssl can only work on them one at a time. this is a known limitation. (https://serverfault.com/questions/590870/how-to-view-all-ssl-certificates-in-a-bundle has some concise workarounds).
+ 3. once all the certificates are in their own crt files, run the openssl command in a loop on them all. we can either decode the entire certificate or just extract the information to check if a particular cert is in given CRL or not. (is this information the serial number?) 
+ to decode everything: openssl x509 -in example.crt -text -noout
+ to extract specific fields: https://www.shellhacks.com/decode-ssl-certificate/
+ 4. now that we have the info, we run another loop, check if these certficates are in the CRL. if any of them are, report them and say that the cert chain is invalid. if none of the certs are in the CRL, then output that it is a valid chain. 
+ this completes the task.
+
+ challenges:
+ both the crt and crl are not in plaintext, they are encoded using some public key. (is this a symmetric key in this case?)
+
+------------------------
+
+26th Jan:
+Short and sweet. This command will parse and give you a list of revoked serial numbers:
+openssl crl -inform DER -text -noout -in rfc5280_CRL.crl
+Most CRLs are DER encoded, but you can use -inform PEM if your CRL is not binary. If you’re unsure if it is DER or PEM open it with a text editor. If you see —–BEGIN X509 CRL—– then it’s PEM and if you see strange binary-looking garbage characters it’s DER.
+
+
+to extract serial number from a pem file: openssl x509 -in 3.pem -serial -noout
+
+to split a pem file will all certs into constituent files: csplit -f cert- 123.pem '/-----BEGIN CERTIFICATE-----/' '{*}'
+or:
+cat 123.pem|awk 'split_after==1{n++;split_after=0} /-----END CERTIFICATE-----/ {split_after=1} {if(length($0) > 0) print > "cert" n ".pem"}'
