@@ -8,7 +8,9 @@
 #include <openssl/x509.h>
 #include <openssl/x509v3.h>
 #include <openssl/bio.h>
-
+#include <openssl/safestack.h>
+#include <openssl/ssl.h>
+#include <string.h>
 using namespace std;
 
 
@@ -44,9 +46,10 @@ void findAllOccurances(vector<int> & vec, string data, string toSearch)
 	}
 }
 
+
 string _asn1int(const ASN1_INTEGER *input)
 {
-	BIGNUM *bn = ASN1_INTEGER_to_BN(input, NULL);
+    BIGNUM *bn = ASN1_INTEGER_to_BN(input, NULL);
 	if(!bn) {
 		cout<<"Error converting ASN1INT to BIGNUM"<<endl;
 		exit(-1);
@@ -68,19 +71,76 @@ string _asn1int(const ASN1_INTEGER *input)
 	BN_free(bn);
 
 	return asn1string;
+
 }
 
 string getSerialNumber(X509* x509)
 {
-    return _asn1int(X509_get_serialNumber(x509));
+	return _asn1int(X509_get_serialNumber(x509));
 }
 
 X509_CRL *new_CRL(const char* crl_filename)
 {
-    BIO *bio = BIO_new_file(crl_filename, "r");
-    X509_CRL *crl_file=d2i_X509_CRL_bio(bio,NULL); //if (format == FORMAT_PEM) crl=PEM_read_bio_X509_CRL(in,NULL,NULL,NULL);
-    BIO_free(bio);
-    return crl_file;
+	BIO *bio = BIO_new_file(crl_filename, "r");
+	X509_CRL *crl_file=d2i_X509_CRL_bio(bio,NULL); //if (format == FORMAT_PEM) crl=PEM_read_bio_X509_CRL(in,NULL,NULL,NULL);
+	BIO_free(bio);
+	return crl_file;
+}
+
+STACK_OF(X509)* getCertStackFromFile(string cert_stack_filename) {
+
+	char file_path[cert_stack_filename.length()];
+	strcpy(file_path, cert_stack_filename.c_str());
+
+	SSL_CTX *sslctx = SSL_CTX_new(SSLv23_server_method());
+	SSL_CTX_use_certificate_chain_file(sslctx, file_path);
+
+
+	STACK_OF(X509) *temp_cert_stack;
+	STACK_OF(X509) *cert_stack;
+	X509 *leaf;
+	int num;
+
+	
+	// Get the certs from sslctx into temp_stack
+	if(SSL_CTX_get0_chain_certs(sslctx, &temp_cert_stack) == 0) {
+		cout<<"Error in getting stack from SSL_CTX"<<endl;
+		exit(-1);
+	}
+
+	// Print the number of certs in temp stack
+	num = sk_X509_num(temp_cert_stack);
+	// cout<<"Number of certs in temp stack = "<<num<<endl;
+
+
+	// Print the leaf cert
+	leaf = SSL_CTX_get0_certificate(sslctx);
+
+
+	// Create a copy of the stack
+	cert_stack = X509_chain_up_ref(temp_cert_stack);
+	if(cert_stack == NULL) {
+		cout<<"Error creating copy of stack"<<endl;
+		exit(-1);
+	}
+
+
+	X509_up_ref(leaf);
+
+	//Insert the leaf cert into stack
+	num = sk_X509_insert(cert_stack, leaf, 0);
+	// cout<<"Inserted leaf cert into stack"<<endl;
+	if(num == 0) {
+		cout<<"Error inserting leaf cert into stack"<<endl;
+		exit(-1);
+	}
+	// cout<<"Number of certs in stack = "<<num<<endl;
+
+
+	SSL_CTX_free(sslctx);
+
+	return cert_stack;
+
 }
 
 int main()
@@ -97,8 +157,6 @@ int main()
 
 
 
-
-
 	//get the path of the certificate chain file
 	
 	cout<<"Enter the full path of the certificate chain file. ";
@@ -108,82 +166,19 @@ int main()
 
 	certChainFilePath = checkIfFileHasBeenDraggedIn(certChainFilePath);
 
-
-
-
-	// read from the pem file into a c++ string
-
-	ifstream certChainFileStream;
-	certChainFileStream.open(certChainFilePath);
-	string certChainFileContent;
-
-	if(certChainFileStream.is_open())
-	{
-		string temp (   (istreambuf_iterator<char>(certChainFileStream)) , istreambuf_iterator<char>()  );
-		certChainFileContent = temp;
-		certChainFileStream.close();
-	}
-	else
-	{
-		cout<<"Wrong path for certificate chain file."<<endl;
-		exit(1);
-	}
-
-	
-
-
-
-
-	// Now, the contents of the pem file are in certChainFileContent string.
-	// All certificates all begin with "-----BEGIN CERTIFICATE-----"
-	// And end with "-----END CERTIFICATE-----"
-	// We need to extract serial numbers from all of them.
-
-
-
-	// Find all occurences of -----BEGIN CERTIFICATE-----
-	vector<int> allOccurencesOfBeginCert; //This will store start indices of all certificates.
-
-	findAllOccurances(allOccurencesOfBeginCert, certChainFileContent, "-----BEGIN CERTIFICATE-----");
-
-
-	// Separate the certificates data into individual strings for openssl to act on.
-	int numberOfCertificates = allOccurencesOfBeginCert.size();
-	int startIndex, endIndex, lengthOfThisCert;
-
-	vector<string> individualCertificates(numberOfCertificates);// Will contain all the individual certificate data as separate strings.
-
-
-	for(int i = 0 ; i < numberOfCertificates - 1 ; i++)//extract all certs except the last one
-	{
-		startIndex = allOccurencesOfBeginCert[i];
-		endIndex = allOccurencesOfBeginCert[i+1]; // non inclusive. That is, [startIndex, endIndex)
-
-		lengthOfThisCert = endIndex - startIndex;
-
-		individualCertificates[i] = certChainFileContent.substr(startIndex, lengthOfThisCert); // Extract the individual cert which is a substring.
-	}
-
-	// Extract the last one too.
-	startIndex = allOccurencesOfBeginCert[numberOfCertificates-1];
-	endIndex = certChainFileContent.length();
-	lengthOfThisCert = endIndex - startIndex;
-
-	individualCertificates[numberOfCertificates-1] = certChainFileContent.substr( startIndex, lengthOfThisCert);
-
-
-	// Now that we have all individual certs in separate strings, we convert them to x509 format and then extract the serial numbers using openssl.
 	vector<string> chainFileSerialNumbers;
+
+	STACK_OF(X509) *cert_stack = getCertStackFromFile(certChainFilePath);
+	int numberOfCertificates = sk_X509_num(cert_stack);
 	
+	for(int i =0;i < numberOfCertificates;i++) {
+		X509* temp = sk_X509_value(cert_stack, i);
+		chainFileSerialNumbers.push_back(getSerialNumber(temp));
+	}	
 
-	for(int i = 0 ; i < numberOfCertificates ; i++)
-	{
-		BIO *bio_mem = BIO_new(BIO_s_mem());
-		BIO_puts(bio_mem, individualCertificates[i].c_str());
 
-		X509 *thisCertInX509 = PEM_read_bio_X509(bio_mem, NULL, NULL, NULL);
-		chainFileSerialNumbers.push_back(getSerialNumber(thisCertInX509)); // Add the serial number to the chainFileSerialNumbers vector.
-	}
+	// -----------------------------------------------------------------
+	// -----------------------------------------------------------------
 
 	cout<<"\nThese are the serial numbers in the chain file:"<<endl; // Display all serial numbers in the chain file.
 	for(int i = 0 ; i < numberOfCertificates ; i++)
@@ -253,7 +248,7 @@ int main()
 	}
 
 	cout<<"\nThese are the serial numbers in the CRL file:"<<endl; // Display all serial numbers in the CRT file.
-	for(int i = 0 ; i < numberOfRevokedCeritficates ; i++)
+	for(int i = 0 ; i < numberOfRevokedCeritficates && i < 20; i++)
 	{
 		cout<<(i+1)<<". "<<revokedSerialNumbers[i]<<endl;
 	}
@@ -267,13 +262,14 @@ int main()
 
 	for(int i=0;i<numberOfCertificates;i++)
 	{
-		string toBeChecked = individualCertificates[i]; // This cert's serial number (from the chain file) will be checked against all the CRT serial numbers.
+		string toBeChecked = chainFileSerialNumbers[i]; // This cert's serial number (from the chain file) will be checked against all the CRT serial numbers.
 
 		for(int j=0;j<numberOfRevokedCeritficates;j++)
 		{
 			if(toBeChecked == revokedSerialNumbers[j])
 			{
-				cout<<"\n"<<toBeChecked<<" has been revoked. INVALID CHAIN."<<endl;
+				cout<<"\n"<<toBeChecked<<" has been revoked. INVALID CHAIN. index = "<<j+1<<endl;
+				cout<<"Revoked serial number at "<<j<<" = "<<revokedSerialNumbers[j]<<endl;
 				exit(1);
 			}
 		}
