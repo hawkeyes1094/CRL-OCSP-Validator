@@ -11,6 +11,16 @@
 #include <string.h>
 using namespace std;
 
+/*
+checkIfFileHasBeenDraggedIn
+getSerialNumberAsString
+getSerialNumber
+getRevokedCertSerialNumber
+getNewCRLFromPath
+getCertStackFromFile
+
+*/
+
 string checkIfFileHasBeenDraggedIn(string inputString)
 {
 	string temp = inputString;
@@ -24,7 +34,7 @@ string checkIfFileHasBeenDraggedIn(string inputString)
 	return temp;
 }
 
-string _asn1int(const ASN1_INTEGER *input) // Converts the serial number to a string
+string getSerialNumberAsString(const ASN1_INTEGER *input) // Converts the serial number to a string
 {
 	BIGNUM *bn = ASN1_INTEGER_to_BN(input, NULL);
 	if (!bn)
@@ -54,19 +64,19 @@ string _asn1int(const ASN1_INTEGER *input) // Converts the serial number to a st
 
 string getSerialNumber(X509 *input)
 {
-	return _asn1int(X509_get_serialNumber(input));
+	return getSerialNumberAsString(X509_get_serialNumber(input));
 }
 
 string getRevokedCertSerialNumber(const X509_REVOKED *input)
 {
-	return _asn1int(X509_REVOKED_get0_serialNumber(input));
+	return getSerialNumberAsString(X509_REVOKED_get0_serialNumber(input));
 }
 
-X509_CRL *newCRL(string CRLFileName)
+X509_CRL *getNewCRLFromPath(string CRLFilePath)
 {
 	BIO *crlbio = NULL;
 	crlbio = BIO_new(BIO_s_file());
-	if (BIO_read_filename(crlbio, CRLFileName.c_str()) <= 0)
+	if (BIO_read_filename(crlbio, CRLFilePath.c_str()) <= 0)
 		cout << "Error loading CRL into memory." << endl;
 
 	X509_CRL *crl = d2i_X509_CRL_bio(crlbio, NULL); //if (format == FORMAT_PEM) crl=PEM_read_bio_X509_CRL(bio,NULL,NULL,NULL);
@@ -181,7 +191,7 @@ int main()
 
 	CRLFilePath = checkIfFileHasBeenDraggedIn(CRLFilePath);
 
-	X509_CRL *CRLFileInX509 = newCRL(CRLFilePath);
+	X509_CRL *CRLFileInX509 = getNewCRLFromPath(CRLFilePath);
 
 	// Get the number of revoked certificates from the CRL.
 	STACK_OF(X509_REVOKED) *revokedStack = NULL;
