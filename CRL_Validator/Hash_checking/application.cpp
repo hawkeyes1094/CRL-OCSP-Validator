@@ -13,11 +13,11 @@ using namespace std;
 
 /*
 checkIfFileHasBeenDraggedIn
-getSerialNumberAsString
-getSerialNumber
-getRevokedCertSerialNumber
+convertASN1ToString
+getSerialNumberFromX509
+getRevokedSerialNumberFromX509
 getNewCRLFromPath
-getCertStackFromFile
+getCertStackFromPath
 
 */
 
@@ -34,7 +34,7 @@ string checkIfFileHasBeenDraggedIn(string inputString)
 	return temp;
 }
 
-string getSerialNumberAsString(const ASN1_INTEGER *input) // Converts the serial number to a string
+string convertASN1ToString(const ASN1_INTEGER *input) // Converts the serial number to a string
 {
 	BIGNUM *bn = ASN1_INTEGER_to_BN(input, NULL);
 	if (!bn)
@@ -62,14 +62,14 @@ string getSerialNumberAsString(const ASN1_INTEGER *input) // Converts the serial
 	return asn1string;
 }
 
-string getSerialNumber(X509 *input)
+string getSerialNumberFromX509(X509 *input)
 {
-	return getSerialNumberAsString(X509_get_serialNumber(input));
+	return convertASN1ToString(X509_get_serialNumber(input));
 }
 
-string getRevokedCertSerialNumber(const X509_REVOKED *input)
+string getRevokedSerialNumberFromX509(const X509_REVOKED *input)
 {
-	return getSerialNumberAsString(X509_REVOKED_get0_serialNumber(input));
+	return convertASN1ToString(X509_REVOKED_get0_serialNumber(input));
 }
 
 X509_CRL *getNewCRLFromPath(string CRLFilePath)
@@ -89,7 +89,7 @@ X509_CRL *getNewCRLFromPath(string CRLFilePath)
 	return crl;
 }
 
-STACK_OF(X509) * getCertStackFromFile(string certStackFilepath)
+STACK_OF(X509) * getCertStackFromPath(string certStackFilepath)
 {
 
 	char filePath[certStackFilepath.length() + 1];
@@ -160,13 +160,13 @@ int main()
 
 	vector<string> chainFileSerialNumbers;
 
-	STACK_OF(X509) *cert_stack = getCertStackFromFile(certChainFilePath);
+	STACK_OF(X509) *cert_stack = getCertStackFromPath(certChainFilePath);
 	int numberOfCertificatesInChain = sk_X509_num(cert_stack); // Get the number of certificates in the chain file.
 
 	for (int i = 0; i < numberOfCertificatesInChain; i++)
 	{
 		X509 *temp = sk_X509_value(cert_stack, i);
-		chainFileSerialNumbers.push_back(getSerialNumber(temp)); // Add the serial number to the chainFileSerialNumbers vector.
+		chainFileSerialNumbers.push_back(getSerialNumberFromX509(temp)); // Add the serial number to the chainFileSerialNumbers vector.
 	}
 
 	cout << "\nThese are the serial numbers in the chain file:" << endl; // Display all serial numbers in the chain file.
@@ -207,7 +207,7 @@ int main()
 	for (int i = 0; i < numberOfRevokedCeritficates; i++)
 	{
 		revEntry = sk_X509_REVOKED_value(revokedStack, i);
-		string thisSerialNumber = getRevokedCertSerialNumber(revEntry);
+		string thisSerialNumber = getRevokedSerialNumberFromX509(revEntry);
 
 		// Add it to the revokedSerialNumbers map.
 		revokedSerialNumbers[thisSerialNumber]++;
