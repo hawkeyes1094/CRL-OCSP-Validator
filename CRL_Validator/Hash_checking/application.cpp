@@ -135,8 +135,9 @@ int main()
 
 	// Display intro message.
 
-	cout << "\nThis is a tool to validate a given certificate chain file against a given CRL. \n\n";
-	cout << "----------------------------------\n\n";
+	cout << "\nThis is a tool to validate a given certificate chain file against a given CRL.\n\n";
+	cout << "Built as an in-semester project by Pranav Kulkarni and Teja Juluru. Mentored by Prof Rajesh Gopakumar and HPE Technologist Vicramaraja ARV.\n\n";
+	cout << "----------------------------------------------------------------\n\n";
 
 	// Get the path of the certificate chain file
 
@@ -171,9 +172,6 @@ int main()
 
 	// As the CRl files usually contains thousands of entries, better to put them in a map for O(1) lookup when we iterate through chainFileSerialNumbers while cheking.
 
-
-
-
 	// Get the CRL file path from the user.
 
 	cout << "Enter the full path of the CRL file. ";
@@ -191,38 +189,29 @@ int main()
 
 	int numberOfRevokedCeritficates = sk_X509_REVOKED_num(revokedStack);
 
-
-
 	// Extract serial numbers of all revoked certificates.
 
-	map <string, int> revokedSerialNumbers;
+	map<string, int> revokedSerialNumbers;
 	X509_REVOKED *revEntry = NULL;
 
 	for (int i = 0; i < numberOfRevokedCeritficates; i++)
 	{
 		revEntry = sk_X509_REVOKED_value(revokedStack, i);
 		string thisSerialNumber = getRevokedCertSerialNumber(revEntry);
-		
+
 		// Add it to the revokedSerialNumbers map.
 		revokedSerialNumbers[thisSerialNumber]++;
 	}
 
-	
-		
 	// Display all serial numbers in the CRT file.
 
-	
-
-	cout<<"\nThese are the serial numbers in the CRL file:"<<endl; 
-	for(map <string, int> :: iterator it = revokedSerialNumbers.begin(); it != revokedSerialNumbers.end(); it++)
+	cout << "\nThese are the serial numbers in the CRL file:" << endl;
+	for (map<string, int>::iterator it = revokedSerialNumbers.begin(); it != revokedSerialNumbers.end(); it++)
 	{
 		// cout<<(i+1)<<". "<<revokedSerialNumbers[i]<<endl;
-		cout<<(it->first)<<endl;
+		cout << (it->first) << endl;
 	}
-	cout<<endl;
-
-	
-	
+	cout << endl;
 
 	// Now we have one vector (chainFileSerialNumbers) and one map (revokedSerialNumbers), with all the required serial numbers.
 
@@ -232,7 +221,7 @@ int main()
 	{
 		string toBeChecked = chainFileSerialNumbers[i];
 
-		if(revokedSerialNumbers[toBeChecked] != 0) // If true, this cert exists in the CRL file.
+		if (revokedSerialNumbers[toBeChecked] != 0) // If true, this cert exists in the CRL file.
 		{
 			cout << "\nThe certificate " << toBeChecked << " has been revoked. This is an INVALID CHAIN." << endl;
 			exit(0);
