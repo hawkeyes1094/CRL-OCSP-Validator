@@ -1,147 +1,44 @@
 // sudo apt-get install libssl-dev
-// g++ application.cpp -lcrypto -lssl
 
-#include <bits/stdc++.h>
-#include <openssl/pem.h>
-#include <openssl/x509.h>
-#include <openssl/x509v3.h>
-#include <openssl/bio.h>
-#include <openssl/safestack.h>
-#include <openssl/ssl.h>
-#include <string.h>
-using namespace std;
 
 /*
-checkIfFileHasBeenDraggedIn
-convertASN1ToString
-getSerialNumberFromX509
-getRevokedSerialNumberFromX509
-getNewCRLFromPath
-getCertStackFromPath
+
+g++ -c -o Common.o Common.cpp
+g++ -c -o ChainFileFunctions.o ChainFileFunctions.cpp
+g++ -c -o CRLFunctions.o CRLFunctions.cpp
+g++ -c -o application.o application.cpp
+g++ -o application Common.o ChainFileFunctions.o CRLFunctions.o application.o -lcrypto -lssl
+./application
 
 */
 
-string checkIfFileHasBeenDraggedIn(string inputString)
+#include "Common.h"
+#include "ChainFileFunctions.h"
+#include "CRLFunctions.h"
+
+using namespace std;
+
+
+string checkIfFileHasBeenDraggedIn(string inputString) // If the file has been dragged into the console, single quotes will be present at both the start and end of the string, which have to be removed.
 {
 	string temp = inputString;
 
-	if (temp[0] != '/') // Yes, the file has been dragged and dropped into the console. contains single quote (') at both start and end which has to be removed.
+	if (temp[0] != '/') // Yes, the file has been dragged and dropped into the console.
 	{
-		// remove the first and last chars
+		// Remove the first and last chars.
 		temp.erase(temp.begin() + 0);
 		temp.erase(temp.end() - 1);
 	}
 	return temp;
 }
 
-string convertASN1ToString(const ASN1_INTEGER *input) // Converts the serial number to a string
-{
-	BIGNUM *bn = ASN1_INTEGER_to_BN(input, NULL);
-	if (!bn)
-	{
-		cout << "Error converting ASN1INT to BIGNUM" << endl;
-		exit(-1);
-	}
 
-	char *tmp = BN_bn2hex(bn);
-	if (!bn)
-	{
-		cout << "Error converting BIGNUM to char*" << endl;
-		BN_free(bn);
-		exit(-1);
-	}
-
-	string asn1string(tmp);
-
-	//Debug
-	// cout<<"Func -> ASN1ToInt, return value = "<<asn1string<<endl;
-
-	OPENSSL_free(tmp);
-	BN_free(bn);
-
-	return asn1string;
-}
-
-string getSerialNumberFromX509(X509 *input)
-{
-	return convertASN1ToString(X509_get_serialNumber(input));
-}
-
-string getRevokedSerialNumberFromX509(const X509_REVOKED *input)
-{
-	return convertASN1ToString(X509_REVOKED_get0_serialNumber(input));
-}
-
-X509_CRL *getNewCRLFromPath(string CRLFilePath)
-{
-	BIO *crlbio = NULL;
-	crlbio = BIO_new(BIO_s_file());
-	if (BIO_read_filename(crlbio, CRLFilePath.c_str()) <= 0)
-		cout << "Error loading CRL into memory." << endl;
-
-	X509_CRL *crl = d2i_X509_CRL_bio(crlbio, NULL); //if (format == FORMAT_PEM) crl=PEM_read_bio_X509_CRL(bio,NULL,NULL,NULL);
-	if (crl == NULL)
-	{
-		cout << "Error converting DER to X509_CRL" << endl;
-		exit(-1);
-	}
-	BIO_free(crlbio);
-	return crl;
-}
-
-STACK_OF(X509) * getCertStackFromPath(string certStackFilepath)
-{
-
-	char filePath[certStackFilepath.length() + 1];
-	strcpy(filePath, certStackFilepath.c_str());
-
-	SSL_CTX *sslCtx = SSL_CTX_new(SSLv23_server_method());
-	SSL_CTX_use_certificate_chain_file(sslCtx, filePath);
-
-	STACK_OF(X509) * tempCertStack;
-	STACK_OF(X509) * certStack;
-	X509 *leaf;
-	int num;
-
-	// Get the certs from sslCtx into temp_stack
-	if (SSL_CTX_get0_chain_certs(sslCtx, &tempCertStack) == 0)
-	{
-		cout << "Error in getting stack from SSL_CTX" << endl;
-		exit(-1);
-	}
-
-	// Print the leaf cert
-	leaf = SSL_CTX_get0_certificate(sslCtx);
-
-	// Create a copy of the stack
-	certStack = X509_chain_up_ref(tempCertStack); // This increases the referencability of tempCertStack by 1, and assigns it to certStack. Now, even if certStack is freed, leaf will continue to function.
-	if (certStack == NULL)
-	{
-		cout << "Error creating copy of stack" << endl;
-		exit(-1);
-	}
-
-	X509_up_ref(leaf); // This increases the referencability of leaf by 1. Now, even if sslCtx is freed, leaf will continue to function.
-
-	//Insert the leaf cert into stack
-	num = sk_X509_insert(certStack, leaf, 0);
-	// cout<<"Inserted leaf cert into stack"<<endl;
-	if (num == 0)
-	{
-		cout << "Error inserting leaf cert into stack" << endl;
-		exit(-1);
-	}
-	// cout<<"Number of certs in stack = "<<num<<endl;
-
-	SSL_CTX_free(sslCtx);
-
-	return certStack;
-}
 
 int main()
 {
 	OpenSSL_add_all_algorithms();
 	ERR_load_BIO_strings();
+
 
 	// Display intro message.
 
@@ -160,12 +57,12 @@ int main()
 
 	vector<string> chainFileSerialNumbers;
 
-	STACK_OF(X509) *cert_stack = getCertStackFromPath(certChainFilePath);
+	STACK_OF(X509) *cert_stack = getCertStackFromPath(certChainFilePath); //Get the stack of certificates from the path.
 	int numberOfCertificatesInChain = sk_X509_num(cert_stack); // Get the number of certificates in the chain file.
 
 	for (int i = 0; i < numberOfCertificatesInChain; i++)
 	{
-		X509 *temp = sk_X509_value(cert_stack, i);
+		X509 *temp = sk_X509_value(cert_stack, i); // Pick one cert from the stack.
 		chainFileSerialNumbers.push_back(getSerialNumberFromX509(temp)); // Add the serial number to the chainFileSerialNumbers vector.
 	}
 
@@ -193,24 +90,25 @@ int main()
 
 	X509_CRL *CRLFileInX509 = getNewCRLFromPath(CRLFilePath);
 
-	// Get the number of revoked certificates from the CRL.
-	STACK_OF(X509_REVOKED) *revokedStack = NULL;
-	revokedStack = X509_CRL_get_REVOKED(CRLFileInX509);
+	
+	STACK_OF(X509_REVOKED) *revokedStack = X509_CRL_get_REVOKED(CRLFileInX509); // Get the stack of revoked certificates.
 
-	int numberOfRevokedCeritficates = sk_X509_REVOKED_num(revokedStack);
+	int numberOfRevokedCeritficates = sk_X509_REVOKED_num(revokedStack); // Get the number of revoked certificates from the CRL.
 
-	// Extract serial numbers of all revoked certificates.
+
+
+	// Extract serial numbers of all revoked certificates, and puts it in a map for fast access.
 
 	map<string, int> revokedSerialNumbers;
 	X509_REVOKED *revEntry = NULL;
 
 	for (int i = 0; i < numberOfRevokedCeritficates; i++)
 	{
-		revEntry = sk_X509_REVOKED_value(revokedStack, i);
-		string thisSerialNumber = getRevokedSerialNumberFromX509(revEntry);
+		revEntry = sk_X509_REVOKED_value(revokedStack, i); //Pick one from the stack.
+		string thisSerialNumber = getRevokedSerialNumberFromX509(revEntry); // Extract it's serial number.
 
-		// Add it to the revokedSerialNumbers map.
-		revokedSerialNumbers[thisSerialNumber]++;
+		
+		revokedSerialNumbers[thisSerialNumber] = (i+1); // Add its index to the revokedSerialNumbers map. (1 - indexed)
 	}
 
 	// Display all serial numbers in the CRT file.
@@ -218,8 +116,7 @@ int main()
 	cout << "\nThese are the serial numbers in the CRL file:" << endl;
 	for (map<string, int>::iterator it = revokedSerialNumbers.begin(); it != revokedSerialNumbers.end(); it++)
 	{
-		// cout<<(i+1)<<". "<<revokedSerialNumbers[i]<<endl;
-		cout << (it->first) << endl;
+		cout << (it->first) << " " << it->second << endl;
 	}
 	cout << endl;
 
@@ -233,13 +130,14 @@ int main()
 
 		if (revokedSerialNumbers[toBeChecked] != 0) // If true, this cert exists in the CRL file.
 		{
-			cout << "\nThe certificate " << toBeChecked << " has been revoked. This is an INVALID CHAIN." << endl;
+			cout << "\nThe certificate " << toBeChecked << " has been revoked. It is present at " << revokedSerialNumbers[toBeChecked] << " index in the CRL." << endl;
+			cout << "This is an INVALID CHAIN.\n\n" << endl;
 			exit(0);
 		}
 	}
 
 	// If we reach till here, none of the chain file's certs have been revoked. It is a VALID CHAIN.
-	cout << "None of the certificates in the chain have been revoked. This is a VALID CHAIN." << endl;
+	cout << "None of the certificates in the chain have been revoked. This is a VALID CHAIN.\n\n" << endl;
 
 	return 0;
 }
