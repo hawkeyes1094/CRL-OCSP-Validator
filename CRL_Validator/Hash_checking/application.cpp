@@ -1,6 +1,5 @@
 // sudo apt-get install libssl-dev
 
-
 /*
 
 g++ -c -o Common.o Common.cpp
@@ -18,7 +17,6 @@ g++ -o application Common.o ChainFileFunctions.o CRLFunctions.o application.o -l
 
 using namespace std;
 
-
 string checkIfFileHasBeenDraggedIn(string inputString) // If the file has been dragged into the console, single quotes will be present at both the start and end of the string, which have to be removed.
 {
 	string temp = inputString;
@@ -32,13 +30,10 @@ string checkIfFileHasBeenDraggedIn(string inputString) // If the file has been d
 	return temp;
 }
 
-
-
 int main()
 {
 	OpenSSL_add_all_algorithms();
 	ERR_load_BIO_strings();
-
 
 	// Display intro message.
 
@@ -58,14 +53,13 @@ int main()
 	vector<string> chainFileSerialNumbers;
 
 	STACK_OF(X509) *cert_stack = getCertStackFromPath(certChainFilePath); //Get the stack of certificates from the path.
-	int numberOfCertificatesInChain = sk_X509_num(cert_stack); // Get the number of certificates in the chain file.
+	int numberOfCertificatesInChain = sk_X509_num(cert_stack);			  // Get the number of certificates in the chain file.
 
 	for (int i = 0; i < numberOfCertificatesInChain; i++)
 	{
-		X509 *temp = sk_X509_value(cert_stack, i); // Pick one cert from the stack.
+		X509 *temp = sk_X509_value(cert_stack, i);						 // Pick one cert from the stack.
 		chainFileSerialNumbers.push_back(getSerialNumberFromX509(temp)); // Add the serial number to the chainFileSerialNumbers vector.
 	}
-
 
 	// We now have all chain file's serial numbers in the string vector chainFileSerialNumbers.
 
@@ -75,7 +69,7 @@ int main()
 
 	// Get the CRL file path from the user.
 
-	cout << "Enter the full path of the CRL file. ";
+	cout << "\n\nEnter the full path of the CRL file. ";
 	cout << "Alternatively, drag and drop the file into this terminal window." << endl;
 	string CRLFilePath;
 	cin >> CRLFilePath;
@@ -84,12 +78,9 @@ int main()
 
 	X509_CRL *CRLFileInX509 = getNewCRLFromPath(CRLFilePath);
 
-	
 	STACK_OF(X509_REVOKED) *revokedStack = X509_CRL_get_REVOKED(CRLFileInX509); // Get the stack of revoked certificates.
 
 	int numberOfRevokedCeritficates = sk_X509_REVOKED_num(revokedStack); // Get the number of revoked certificates from the CRL.
-
-
 
 	// Extract serial numbers of all revoked certificates, and puts it in a map for fast access.
 
@@ -98,33 +89,44 @@ int main()
 
 	for (int i = 0; i < numberOfRevokedCeritficates; i++)
 	{
-		revEntry = sk_X509_REVOKED_value(revokedStack, i); //Pick one from the stack.
+		revEntry = sk_X509_REVOKED_value(revokedStack, i);					//Pick one from the stack.
 		string thisSerialNumber = getRevokedSerialNumberFromX509(revEntry); // Extract it's serial number.
 
-		
-		revokedSerialNumbers[thisSerialNumber] = (i+1); // Add its index to the revokedSerialNumbers map. (1 - indexed)
+		revokedSerialNumbers[thisSerialNumber] = (i + 1); // Add its index to the revokedSerialNumbers map. (1 - indexed)
 	}
-
-
 
 	// Now we have one vector (chainFileSerialNumbers) and one map (revokedSerialNumbers), with all the required serial numbers.
 
 	// Do the checking. That is, see if there is any cert from the chain file which is listed in the CRL. If there is, the chain file is NOT VALID.
 
-	for (int i = 0; i < numberOfCertificatesInChain; i++)
+	int validityStatus = 0; // Let 0 be non-revoked and 1 be revoked.
+	vector<string> certChainRevokedCerts;
+
+	for (int i = 0; i < chainFileSerialNumbers.size(); i++)
 	{
 		string toBeChecked = chainFileSerialNumbers[i];
 
 		if (revokedSerialNumbers[toBeChecked] != 0) // If true, this cert exists in the CRL file.
 		{
-			cout << "\nThe certificate " << toBeChecked << " has been revoked. It is present at " << revokedSerialNumbers[toBeChecked] << " index in the CRL." << endl;
-			cout << "This is an INVALID CHAIN.\n\n" << endl;
-			exit(0);
+			validityStatus = 1;							  // Set the status as revoked.
+			certChainRevokedCerts.push_back(toBeChecked); // Add it to the list of revoked certs from the input chain file.
 		}
 	}
 
-	// If we reach till here, none of the chain file's certs have been revoked. It is a VALID CHAIN.
-	cout << "None of the certificates in the chain have been revoked. This is a VALID CHAIN.\n\n" << endl;
+	if (validityStatus == 1) // Revoked
+	{
+		cout << "\nChain file is INVALID because these certificates from the chain file were found to be listed in the CRL." << endl;
+		for (int i = 0; i < certChainRevokedCerts.size(); i++)
+		{
+			string thisCert = certChainRevokedCerts[i];
+			cout << (i + 1) << ". " << thisCert << " was found at index " << revokedSerialNumbers[thisCert] << "." << endl;
+		}
+		cout << "\n\n";
+	}
+	else // Non-revoked
+	{
+		cout << "\nChain file is VALID because none of the certificates from the chain file were found to be listed in the CRL.\n\n";
+	}
 
 	return 0;
 }
