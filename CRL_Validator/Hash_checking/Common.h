@@ -4,8 +4,7 @@
 /*
     All standard header files required by us.
     
-    These function declarations in this file:
-    1. string convertASN1ToString(const ASN1_INTEGER *input)
+
 */
 
 

@@ -6,6 +6,7 @@ These function definations in this file:
 
 1. X509_CRL *getNewCRLFromPath(string CRLFilePath);
 2. string getRevokedSerialNumberFromX509(const X509_REVOKED *input);
+3. void printCRLSerialNumbers(map<string, int> revokedSerialNumbers)
 
 */
 
@@ -35,4 +36,16 @@ X509_CRL *getNewCRLFromPath(string CRLFilePath)
 string getRevokedSerialNumberFromX509(const X509_REVOKED *input)
 {
     return convertASN1ToString(X509_REVOKED_get0_serialNumber(input));
+}
+
+void printCRLSerialNumbers(map<string, int> revokedSerialNumbers)  // Display all serial numbers in the CRL file.
+{
+    // Display all serial numbers in the CRT file.
+
+    cout << "\nThese are the serial numbers in the CRL file:" << endl;
+    for (map<string, int>::iterator it = revokedSerialNumbers.begin(); it != revokedSerialNumbers.end(); it++)
+    {
+        cout << (it->first) << " " << it->second << endl;
+    }
+    cout << endl;
 }

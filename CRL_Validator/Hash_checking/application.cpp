@@ -66,12 +66,6 @@ int main()
 		chainFileSerialNumbers.push_back(getSerialNumberFromX509(temp)); // Add the serial number to the chainFileSerialNumbers vector.
 	}
 
-	cout << "\nThese are the serial numbers in the chain file:" << endl; // Display all serial numbers in the chain file.
-	for (int i = 0; i < numberOfCertificatesInChain; i++)
-	{
-		cout << (i + 1) << ". " << chainFileSerialNumbers[i] << endl;
-	}
-	cout << endl;
 
 	// We now have all chain file's serial numbers in the string vector chainFileSerialNumbers.
 
@@ -111,14 +105,7 @@ int main()
 		revokedSerialNumbers[thisSerialNumber] = (i+1); // Add its index to the revokedSerialNumbers map. (1 - indexed)
 	}
 
-	// Display all serial numbers in the CRT file.
 
-	cout << "\nThese are the serial numbers in the CRL file:" << endl;
-	for (map<string, int>::iterator it = revokedSerialNumbers.begin(); it != revokedSerialNumbers.end(); it++)
-	{
-		cout << (it->first) << " " << it->second << endl;
-	}
-	cout << endl;
 
 	// Now we have one vector (chainFileSerialNumbers) and one map (revokedSerialNumbers), with all the required serial numbers.
 
