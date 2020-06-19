@@ -28,9 +28,9 @@ g++ -o application Common.o ChainFileFunctions.o CRLFunctions.o OCSPFunctions.o 
 
 using namespace std;
 
-string checkIfFileHasBeenDraggedIn(string inputString) // If the file has been dragged into the console, single quotes will be present at both the start and end of the string, which have to be removed.
+std::string checkIfFileHasBeenDraggedIn(std::string inputString) // If the file has been dragged into the console, single quotes will be present at both the start and end of the string, which have to be removed.
 {
-	string temp = inputString;
+	std::string temp = inputString;
 
 	if (temp[0] != '/') // Yes, the file has been dragged and dropped into the console.
 	{
@@ -48,20 +48,20 @@ int main()
 
 	// Display intro message.
 
-	cout << "\nThis is a tool to validate a given certificate chain file against a given CRL.\n\n";
-	cout << "Built as an in-semester project by Pranav Kulkarni and Teja Juluru. Mentored by Prof Rajesh Gopakumar and HPE Technologist Vicramaraja ARV.\n\n";
-	cout << "----------------------------------------------------------------\n\n";
+	std::cout << "\nThis is a tool to validate a given certificate chain file against a given CRL.\n" << std::endl;
+	std::cout << "Built as an in-semester project by Pranav Kulkarni and Teja Juluru. Mentored by Prof Rajesh Gopakumar and HPE Technologist Vicramaraja ARV.\n" << std::endl;
+	std::cout << "----------------------------------------------------------------\n" << std::endl;
 
 	// Get the path of the certificate chain file
 
-	cout << "Enter the full path of the certificate chain file. ";
-	cout << "Alternatively, drag and drop the file into this terminal window." << endl;
-	string certChainFilePath = "'/home/pranav/Desktop/integrated/CRL_Validator/Hash_checking/test_files/chain.pem'";
-	// cin >> certChainFilePath;
+	std::cout << "Enter the full path of the certificate chain file. ";
+	std::cout << "Alternatively, drag and drop the file into this terminal window." << std::endl;
+	std::string certChainFilePath;
+	std::cin >> certChainFilePath;
 
 	certChainFilePath = checkIfFileHasBeenDraggedIn(certChainFilePath);
 
-	vector<string> chainFileSerialNumbers;
+	std::vector<std::string> chainFileSerialNumbers;
 
 	STACK_OF(X509) *cert_stack = getCertStackFromPath(certChainFilePath); //Get the stack of certificates from the path.
 	int numberOfCertificatesInChain = sk_X509_num(cert_stack);			  // Get the number of certificates in the chain file.
@@ -80,10 +80,10 @@ int main()
 
 	// Get the CRL file path from the user.
 
-	cout << "\n\nEnter the full path of the CRL file. ";
-	cout << "Alternatively, drag and drop the file into this terminal window." << endl;
-	string CRLFilePath = "'/home/pranav/Desktop/integrated/CRL_Validator/Hash_checking/test_files/SSLcomRSASSLsubCA.crl'";
-	// cin >> CRLFilePath;
+	std::cout << "\n\nEnter the full path of the CRL file. ";
+	std::cout << "Alternatively, drag and drop the file into this terminal window." << std::endl;
+	std::string CRLFilePath;
+	std::cin >> CRLFilePath;
 
 	CRLFilePath = checkIfFileHasBeenDraggedIn(CRLFilePath);
 
@@ -95,7 +95,7 @@ int main()
 
 	// Extract serial numbers of all revoked certificates, and puts it in a map for fast access.
 
-	map<string, int> revokedSerialNumbers;
+	map<std::string, int> revokedSerialNumbers;
 	X509_REVOKED *revEntry = NULL;
 
 	for (int i = 0; i < numberOfRevokedCeritficates; i++)
@@ -111,11 +111,11 @@ int main()
 	// Do the checking. That is, see if there is any cert from the chain file which is listed in the CRL. If there is, the chain file is NOT VALID.
 
 	int CRLvalidityStatus = 0; // Let 0 be non-revoked and 1 be revoked.
-	vector<string> CRLcertChainRevokedCerts;
+	std::vector<std::string> CRLcertChainRevokedCerts;
 
 	for (int i = 0; i < chainFileSerialNumbers.size(); i++)
 	{
-		string toBeChecked = chainFileSerialNumbers[i];
+		std::string toBeChecked = chainFileSerialNumbers[i];
 
 		if (revokedSerialNumbers[toBeChecked] != 0) // If true, this cert exists in the CRL file.
 		{
@@ -126,17 +126,17 @@ int main()
 
 	if (CRLvalidityStatus == 1) // Revoked
 	{
-		cout << "\nChain file is INVALID because the following certificates from the chain file were found to be listed in the CRL." << endl;
+		std::cout << "\nChain file is INVALID because the following certificates from the chain file were found to be listed in the CRL." << std::endl;
 		for (int i = 0; i < CRLcertChainRevokedCerts.size(); i++)
 		{
-			string thisCert = CRLcertChainRevokedCerts[i];
-			cout << (i + 1) << ". " << thisCert << " was found at index " << revokedSerialNumbers[thisCert] << "." << endl;
+			std::string thisCert = CRLcertChainRevokedCerts[i];
+			std::cout << (i + 1) << ". " << thisCert << " was found at index " << revokedSerialNumbers[thisCert] << "." << std::endl;
 		}
-		cout << "\n\n";
+		std::cout << "\n\n";
 	}
 	else // Non-revoked
 	{
-		cout << "\nChain file is VALID because none of the certificates from the chain file were found to be listed in the CRL.\n\n";
+		std::cout << "\nChain file is VALID because none of the certificates from the chain file were found to be listed in the CRL.\n"<<std::endl;
 	}
 
 	//===============================================
@@ -149,11 +149,10 @@ int main()
 	// For now let us assume the order is -
 	// leaf -> intermediate(s) -> root
 	//
-
-	cout<<"hello"<<endl;
+	
 
 	int OCSPvalidityStatus = 0; // Let 0 be non-revoked and 1 be revoked.
-	vector<string> OCSPcertChainRevokedCerts;
+	std::vector<std::string> OCSPcertChainRevokedCerts;
 
 	for (int i = 0; i < sk_X509_num(cert_stack) - 1; i++)
 	{
@@ -164,8 +163,6 @@ int main()
 		thisCertIssuer = sk_X509_value(cert_stack, i + 1);
 
 		std::vector<std::string> ocspURLs = getOCSPURLs(thisCert);
-
-		cout<<"hello1"<<endl;
 
 		for (std::string thisURL : ocspURLs) // Iterate through all provided URLs until one of them responds.
 		{
@@ -179,11 +176,9 @@ int main()
 			int useSSL;
 			if (!OCSP_parse_url(thisURL.c_str(), &host, &port, &path, &useSSL)) // look into this later
 			{
-				std::cerr << "Failed to parse URL." << endl;
+				std::cerr << "Failed to parse URL." << std::endl;
 				exit(-1);
 			}
-
-			cout<<"hello2"<<endl;
 
 			// Create the connection BIO.
 			BIO *connBIO = NULL;
@@ -216,10 +211,9 @@ int main()
 				exit(-1);
 			}
 
-			cout<<"hello3"<<endl;
-
 			// Request timeout handling goes here, impotant but can be done later.
 
+			
 			// Execute the connection.
 			OCSP_RESPONSE *thisResponse = NULL;
 
@@ -236,8 +230,6 @@ int main()
 			OCSP_REQ_CTX_free(requestCTX);
 			BIO_free_all(connBIO);
 
-			cout<<"hello4"<<endl;
-
 			//
 			// OCSP_RESPONSE_print(); ; debug function which is not working at the moment.
 			//
@@ -245,10 +237,10 @@ int main()
 			// Check the status of the certificate from the response.
 			int status, reason;
 			ASN1_GENERALIZEDTIME *revokedTime; // Can print the time that the cert was revoked.
-			cout<<"hello4.5"<<endl;
 			getCertificateStatus(thisResponse, certID, &status, &reason, &revokedTime);
-			cout<<"hello5"<<endl;
+			
 			OCSP_RESPONSE_free(thisResponse);
+			OCSP_REQUEST_free(thisRequest); //Also frees certID
 
 
 
@@ -272,22 +264,23 @@ int main()
 			{
 				std::cerr << "Unknown error." << std::endl;
 			}
-		}
+			
+		} // End of inner URL loop
 
 	}
 
 	if (OCSPvalidityStatus == 1) // Revoked
 	{
-		cout << "\nChain file is INVALID because the following certificates from the chain file were returned as revoked from the OCSP server." << endl;
+		std::cout << "\nChain file is INVALID because the following certificates from the chain file were returned as revoked from the OCSP server." << std::endl;
 		for (int i = 0; i < OCSPcertChainRevokedCerts.size(); i++)
 		{
-			std::cout << (i + 1) << ". " << OCSPcertChainRevokedCerts[i] << endl;
+			std::cout << (i + 1) << ". " << OCSPcertChainRevokedCerts[i] << std::endl;
 		}
 		std::cout << "\n\n";
 	}
 	else // Non-revoked
 	{
-		std::cout << "\nChain file is VALID because none of the certificates from the chain file were returned as revoked from the OCSP server.\n\n";
+		std::cout << "\nChain file is VALID because none of the certificates from the chain file were returned as revoked from the OCSP server.\n" << std::endl;
 	}
 
 	return 0;
