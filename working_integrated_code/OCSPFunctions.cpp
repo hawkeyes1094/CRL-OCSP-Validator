@@ -104,21 +104,21 @@ void getCertificateStatus(OCSP_RESPONSE *response, OCSP_CERTID *certID, int *sta
 {
 	OCSP_BASICRESP *basicResp = NULL;
 
-	cout<<"hello4.6"<<endl;
 	basicResp = OCSP_response_get1_basic(response);
-	cout<<"hello4.7"<<endl;
 	if (basicResp == NULL)
 	{
 		cout << "Error getting BASICRESP struct from response" << endl;
 		exit(-1);
 	}
-	cout<<"hello4.8"<<endl;
 	if (OCSP_resp_find_status(basicResp, certID, status, reason, revokedTime, NULL, NULL) == 0)
 	{
 		cout << "Cert ID could not be found in basic response" << endl;
 		exit(-1);
 	}
-	cout<<"hello4.9"<<endl;
+	
+	OCSP_BASICRESP_free(basicResp);
+	
+	return;
 }
 
 // Debug func : Print the OCSP request
