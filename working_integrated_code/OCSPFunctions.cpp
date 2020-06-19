@@ -15,11 +15,10 @@ using namespace std;
 // Return a vector of OCSP Responder URLs present in the certificate
 std::vector<std::string> getOCSPURLs(X509 *cert)
 {
+	std::vector<std::string> OCSPURLs;
+
 	// Stack contains all URLs present in AIA extension
-	// IN-built function
-
-	std::vector<string> OCSPURLs;
-
+	// X509_get1_ocsp() is an in-built function
 	STACK_OF(OPENSSL_STRING) *strStack = X509_get1_ocsp(cert);
 	int stackSize = sk_OPENSSL_STRING_num(strStack);
 
@@ -43,7 +42,7 @@ OCSP_CERTID *getCertificateID(X509 *cert, X509 *issuerCert)
 	certID = OCSP_cert_to_id(EVP_sha1(), cert, issuerCert);
 	if (certID == NULL)
 	{
-		cout << "Error getting CERT_ID" << endl;
+		std::cerr << "Error getting CERT_ID" << std::endl;
 		exit(-1);
 	}
 }
@@ -54,16 +53,17 @@ OCSP_REQUEST *createOCSPRequest(OCSP_CERTID *certID, std::string OCSPURL)
 	OCSP_REQUEST *request = NULL;
 	request = OCSP_REQUEST_new();
 
+	// Add the certificate ID to the request
 	if (OCSP_request_add0_id(request, certID) == NULL)
 	{
-		cout << "Error adding CERT_ID to request" << endl;
+		std::cerr << "Error adding CERT_ID to request" << std::endl;
 		exit(-1);
 	}
 
 	// Add nonce
 	if (OCSP_request_add1_nonce(request, NULL, 0) == 0)
 	{
-		cout << "Error adding nonce to request" << endl;
+		std::cerr << "Error adding nonce to request" << std::endl;
 		exit(-1);
 	}
 
@@ -75,31 +75,32 @@ void parseURL(char *OCSPURL, char **host, char **port, char **path, int *useSSL)
 {
 	if (!OCSP_parse_url(OCSPURL, host, port, path, useSSL))
 	{
-		cout << "Error in parsing URL" << endl;
+		std::cerr << "Error in parsing URL" << std::endl;
 		exit(-1);
 	}
 }
 
-// Create a request context CTX structure
+// Create an OCSP request context CTX structure
 OCSP_REQ_CTX *createOCSPRequestCTX(BIO *connBIO, char *path, char *host)
 {
 	OCSP_REQ_CTX *requestCTX = NULL;
 	requestCTX = OCSP_sendreq_new(connBIO, path, NULL, -1);
 	if (requestCTX == NULL)
 	{
-		cout << "Error creating request CTX object" << endl;
+		std::cerr << "Error creating request CTX object" << std::endl;
 		exit(-1);
 	}
 
 	if (OCSP_REQ_CTX_add1_header(requestCTX, "Host", host) == 0)
 	{
-		cout << "Error adding header to CTX object" << endl;
+		std::cerr << "Error adding header to CTX object" << std::endl;
 		exit(-1);
 	}
 
 	return requestCTX;
 }
 
+// Get the status of the certificate with ID certID from the response
 void getCertificateStatus(OCSP_RESPONSE *response, OCSP_CERTID *certID, int *status, int *reason, ASN1_GENERALIZEDTIME **revokedTime)
 {
 	OCSP_BASICRESP *basicResp = NULL;
@@ -107,12 +108,12 @@ void getCertificateStatus(OCSP_RESPONSE *response, OCSP_CERTID *certID, int *sta
 	basicResp = OCSP_response_get1_basic(response);
 	if (basicResp == NULL)
 	{
-		cout << "Error getting BASICRESP struct from response" << endl;
+		std::cerr << "Error getting BASICRESP struct from response" << std::endl;
 		exit(-1);
 	}
 	if (OCSP_resp_find_status(basicResp, certID, status, reason, revokedTime, NULL, NULL) == 0)
 	{
-		cout << "Cert ID could not be found in basic response" << endl;
+		std::cerr << "Cert ID could not be found in basic response" << std::endl;
 		exit(-1);
 	}
 	
