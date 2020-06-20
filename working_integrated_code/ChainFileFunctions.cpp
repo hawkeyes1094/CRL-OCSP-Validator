@@ -6,7 +6,8 @@ These function definations in this file:
 
 1. STACK_OF(X509) * getCertStackFromPath (string certStackFilepath);
 2. string getSerialNumberFromX509(X509 *input);
-3. void printCertChainSerialNumbers(vectot<string> chainFileSerialNumbers)
+3. STACK_OF(X509) * correctCertStackOrder(STACK_OF(X509) *certStack);
+4. void printCertChainSerialNumbers(vectot<string> chainFileSerialNumbers)
 */
 
 #include "Common.h"
