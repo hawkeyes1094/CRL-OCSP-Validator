@@ -1,12 +1,6 @@
 #include "Common.h"
 #include "OCSPFunctions.h"
 
-#include <vector>
-#include <string>
-
-#include <openssl/bio.h>
-#include <openssl/err.h>
-#include <openssl/ocsp.h>
 
 //
 
