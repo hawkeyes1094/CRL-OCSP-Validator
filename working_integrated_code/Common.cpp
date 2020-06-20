@@ -26,9 +26,6 @@ std::string convertASN1ToString(const ASN1_INTEGER *input) // Converts the seria
 
 	std::string asn1string(tempHex);
 
-	//Debug
-	// cout<<"Func -> ASN1ToInt, return value = "<<asn1string<<endl;
-
 	OPENSSL_free(tempHex);
 	BN_free(tempBignum);
 
