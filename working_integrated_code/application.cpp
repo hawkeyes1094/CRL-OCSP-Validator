@@ -143,15 +143,7 @@ int main()
 	}
 
 	//===============================================
-	// OCSP
-
-	//
-	// Here we need to handle the two cases of certificate chain ordering. (REMINDER) : Write function to detect chain file order.
-	//
-
-	// For now let us assume the order is -
-	// leaf -> intermediate(s) -> root
-	//
+	// Code for OCSP checking starts here.
 	
 
 	int OCSPvalidityStatus = 0; // Let 0 be non-revoked and 1 be revoked.
@@ -177,7 +169,7 @@ int main()
 			// Parse the URL
 			char *host = NULL, *port = NULL, *path = NULL;
 			int useSSL;
-			if (!OCSP_parse_url(thisURL.c_str(), &host, &port, &path, &useSSL)) // look into this later
+			if (OCSP_parse_url(thisURL.c_str(), &host, &port, &path, &useSSL) == 0)
 			{
 				std::cerr << "Failed to parse URL." << std::endl;
 				exit(-1);
@@ -200,14 +192,14 @@ int main()
 
 			OCSP_REQ_CTX *requestCTX = createOCSPRequestCTX(connBIO, path, host);
 
-			// Set the OCSP request
+			// Set the OCSP request.
 			if (OCSP_REQ_CTX_set1_req(requestCTX, thisRequest) == 0)
 			{
 				std::cerr << "Error setting the OCSP request CTX object" << std::endl;
 				exit(-1);
 			}
 
-			// Connect to the OCSP responder
+			// Connect to the OCSP responder.
 			if (BIO_do_connect(connBIO) <= 0)
 			{
 				std::cerr << "Error connecting to BIO" << std::endl;
@@ -228,8 +220,6 @@ int main()
 			}
 
 			// Tear down the non-necessary structures.
-			// OCSP_CERTID_free(certID);
-			// OCSP_REQUEST_free(thisRequest);
 			OCSP_REQ_CTX_free(requestCTX);
 			BIO_free_all(connBIO);
 
@@ -239,12 +229,12 @@ int main()
 
 			// Check the status of the certificate from the response.
 			int status, reason;
-			ASN1_GENERALIZEDTIME *revokedTime; // Can print the time that the cert was revoked.
+			ASN1_GENERALIZEDTIME *revokedTime = NULL;
 			getCertificateStatus(thisResponse, certID, &status, &reason, &revokedTime);
 			
 			OCSP_RESPONSE_free(thisResponse);
-			OCSP_REQUEST_free(thisRequest); //Also frees certID
-
+			OCSP_REQUEST_free(thisRequest); //Also frees certID.
+			
 
 
 			if (status == V_OCSP_CERTSTATUS_GOOD)
@@ -256,21 +246,24 @@ int main()
 			{
 				OCSPvalidityStatus = 1;													// Set the status as revoked.
 				OCSPcertChainRevokedCerts.push_back(getSerialNumberFromX509(thisCert)); // Add it to the list of revoked certs from the input chain file.
+				// Add code here to print the revocation time.
+				ASN1_GENERALIZEDTIME_free(revokedTime);
 				break;																	// Break out of the URLs loop and go on to check further certs.
 			}
 			else if (status == V_OCSP_CERTSTATUS_UNKNOWN)
 			{
-				std::cerr << "Certicate status unknown." << std::endl;
+				std::cerr << "Certicate status is UNKNOWN by OCSP Server." << std::endl;
 				// break; check if one URL returns "unkown status", do all other URLs also return unknown status????????
 			}
 			else
 			{
-				std::cerr << "Unknown error." << std::endl;
+				std::cerr << "Invalid OCSP status code received." << std::endl;
+				exit(-1);
 			}
 			
-		} // End of inner URL loop
+		} // End of inner URL loop.
 
-	}
+	} // End of of the loop going through the chain file.
 
 	if (OCSPvalidityStatus == 1) // Revoked
 	{
