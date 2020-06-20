@@ -52,13 +52,13 @@ int main()
 
 	vector<string> chainFileSerialNumbers;
 
-	STACK_OF(X509) *cert_stack = getCertStackFromPath(certChainFilePath); //Get the stack of certificates from the path.
-	int numberOfCertificatesInChain = sk_X509_num(cert_stack);			  // Get the number of certificates in the chain file.
+	STACK_OF(X509) *chainFileCertStack = getCertStackFromPath(certChainFilePath); //Get the stack of certificates from the path.
+	int numberOfCertificatesInChain = sk_X509_num(chainFileCertStack);			  // Get the number of certificates in the chain file.
 
 	for (int i = 0; i < numberOfCertificatesInChain; i++)
 	{
-		X509 *temp = sk_X509_value(cert_stack, i);						 // Pick one cert from the stack.
-		chainFileSerialNumbers.push_back(getSerialNumberFromX509(temp)); // Add the serial number to the chainFileSerialNumbers vector.
+		X509 *thisCert = sk_X509_value(chainFileCertStack, i);				 // Pick one cert from the stack.
+		chainFileSerialNumbers.push_back(getSerialNumberFromX509(thisCert)); // Add the serial number to the chainFileSerialNumbers vector.
 	}
 
 	// We now have all chain file's serial numbers in the string vector chainFileSerialNumbers.
@@ -99,8 +99,8 @@ int main()
 
 	// Do the checking. That is, see if there is any cert from the chain file which is listed in the CRL. If there is, the chain file is NOT VALID.
 
-	int validityStatus = 0; // Let 0 be non-revoked and 1 be revoked.
-	vector<string> certChainRevokedCerts;
+	int validityStatus = 0;				  // Let 0 be non-revoked and 1 be revoked.
+	vector<string> certChainRevokedCerts; // All the certificates that have been revoked in the chain file will be inserted here.
 
 	for (int i = 0; i < chainFileSerialNumbers.size(); i++)
 	{
