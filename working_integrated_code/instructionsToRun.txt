@@ -3,9 +3,10 @@ Cd into the folder will all the files, then run these.
 g++ -c -o Common.o Common.cpp
 g++ -c -o ChainFileFunctions.o ChainFileFunctions.cpp
 g++ -c -o CRLFunctions.o CRLFunctions.cpp
+g++ -c -o OCSPFunctions.o OCSPFunctions.cpp
 g++ -c -o application.o application.cpp
 
-g++ -o application Common.o ChainFileFunctions.o CRLFunctions.o application.o -lcrypto -lssl
+g++ -o application Common.o ChainFileFunctions.o CRLFunctions.o OCSPFunctions.o application.o -lcrypto -lssl
 
 Run using: 
 ./application
@@ -13,4 +14,10 @@ Run using:
 
 Single command to do everything:
 
-g++ -c -o Common.o Common.cpp && g++ -c -o ChainFileFunctions.o ChainFileFunctions.cpp && g++ -c -o CRLFunctions.o CRLFunctions.cpp && g++ -c -o application.o application.cpp && g++ -o application Common.o ChainFileFunctions.o CRLFunctions.o application.o -lcrypto -lssl && ./application
+g++ -c -o Common.o Common.cpp && \
+g++ -c -o ChainFileFunctions.o ChainFileFunctions.cpp && \
+g++ -c -o CRLFunctions.o CRLFunctions.cpp && \
+g++ -c -o OCSPFunctions.o OCSPFunctions.cpp && \
+g++ -c -o application.o application.cpp && \
+g++ -o application Common.o ChainFileFunctions.o CRLFunctions.o OCSPFunctions.o application.o -lcrypto -lssl && \
+./application
