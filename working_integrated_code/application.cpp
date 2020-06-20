@@ -28,17 +28,17 @@ g++ -o application Common.o ChainFileFunctions.o CRLFunctions.o OCSPFunctions.o 
 
 using namespace std;
 
-std::string checkIfFileHasBeenDraggedIn(std::string inputString) // If the file has been dragged into the console, single quotes will be present at both the start and end of the string, which have to be removed.
+std::string checkIfFileHasBeenDraggedIn(std::string originalPath) // If the file has been dragged into the console, single quotes will be present at both the start and end of the string, which have to be removed.
 {
-	std::string temp = inputString;
+	std::string changedPath = originalPath;
 
-	if (temp[0] != '/') // Yes, the file has been dragged and dropped into the console.
+	if (changedPath[0] != '/') // Yes, the file has been dragged and dropped into the console.
 	{
 		// Remove the first and last chars.
-		temp.erase(temp.begin() + 0);
-		temp.erase(temp.end() - 1);
+		changedPath.erase(changedPath.begin() + 0);
+		changedPath.erase(changedPath.end() - 1);
 	}
-	return temp;
+	return changedPath;
 }
 
 int main()
@@ -48,9 +48,12 @@ int main()
 
 	// Display intro message.
 
-	std::cout << "\nThis is a tool to validate a given certificate chain file against a given CRL.\n" << std::endl;
-	std::cout << "Built as an in-semester project by Pranav Kulkarni and Teja Juluru. Mentored by Prof Rajesh Gopakumar and HPE Technologist Vicramaraja ARV.\n" << std::endl;
-	std::cout << "----------------------------------------------------------------\n" << std::endl;
+	std::cout << "\nThis is a tool to validate a given certificate chain file against a given CRL.\n"
+			  << std::endl;
+	std::cout << "Built as an in-semester project by Pranav Kulkarni and Teja Juluru. Mentored by Prof Rajesh Gopakumar and HPE Technologist Vicramaraja ARV.\n"
+			  << std::endl;
+	std::cout << "----------------------------------------------------------------\n"
+			  << std::endl;
 
 	// Get the path of the certificate chain file
 
@@ -64,15 +67,15 @@ int main()
 	std::vector<std::string> chainFileSerialNumbers;
 
 	STACK_OF(X509) *certStack = getCertStackFromPath(certChainFilePath); //Get the stack of certificates from the path.
-	
-	certStack = correctCertStackOrder(certStack);						// Correct the order of the certificate stack
 
-	int numberOfCertificatesInChain = sk_X509_num(certStack);			  // Get the number of certificates in the chain file.
+	certStack = correctCertStackOrder(certStack); // Correct the order of the certificate stack
+
+	int numberOfCertificatesInChain = sk_X509_num(certStack); // Get the number of certificates in the chain file.
 
 	for (int i = 0; i < numberOfCertificatesInChain; i++)
 	{
-		X509 *temp = sk_X509_value(certStack, i);						 // Pick one cert from the stack.
-		chainFileSerialNumbers.push_back(getSerialNumberFromX509(temp)); // Add the serial number to the chainFileSerialNumbers vector.
+		X509 *thisCert = sk_X509_value(certStack, i);						 // Pick one cert from the stack.
+		chainFileSerialNumbers.push_back(getSerialNumberFromX509(thisCert)); // Add the serial number to the chainFileSerialNumbers vector.
 	}
 
 	// We now have all chain file's serial numbers in the string vector chainFileSerialNumbers.
@@ -99,12 +102,12 @@ int main()
 	// Extract serial numbers of all revoked certificates, and puts it in a map for fast access.
 
 	map<std::string, int> revokedSerialNumbers;
-	X509_REVOKED *revEntry = NULL;
+	X509_REVOKED *revStackEntry = NULL;
 
 	for (int i = 0; i < numberOfRevokedCeritficates; i++)
 	{
-		revEntry = sk_X509_REVOKED_value(revokedStack, i);					//Pick one from the stack.
-		string thisSerialNumber = getRevokedSerialNumberFromX509(revEntry); // Extract it's serial number.
+		revStackEntry = sk_X509_REVOKED_value(revokedStack, i);					 //Pick one from the stack.
+		string thisSerialNumber = getRevokedSerialNumberFromX509(revStackEntry); // Extract it's serial number.
 
 		revokedSerialNumbers[thisSerialNumber] = (i + 1); // Add its index to the revokedSerialNumbers map. (1 - indexed)
 	}
@@ -113,8 +116,8 @@ int main()
 
 	// Do the checking. That is, see if there is any cert from the chain file which is listed in the CRL. If there is, the chain file is NOT VALID.
 
-	int CRLvalidityStatus = 0; // Let 0 be non-revoked and 1 be revoked.
-	std::vector<std::string> CRLcertChainRevokedCerts;
+	int CRLvalidityStatus = 0;						   // Let 0 be non-revoked and 1 be revoked.
+	std::vector<std::string> CRLcertChainRevokedCerts; // All chain file certificates that are found to also exist in the CRL will be inserted here.
 
 	for (int i = 0; i < chainFileSerialNumbers.size(); i++)
 	{
@@ -139,17 +142,17 @@ int main()
 	}
 	else // Non-revoked
 	{
-		std::cout << "\nChain file is VALID because none of the certificates from the chain file were found to be listed in the CRL.\n"<<std::endl;
+		std::cout << "\nChain file is VALID because none of the certificates from the chain file were found to be listed in the CRL.\n"
+				  << std::endl;
 	}
 
 	//===============================================
 	// Code for OCSP checking starts here.
-	
 
-	int OCSPvalidityStatus = 0; // Let 0 be non-revoked and 1 be revoked.
-	std::vector<std::string> OCSPcertChainRevokedCerts;
+	int OCSPvalidityStatus = 0;							// Let 0 be non-revoked and 1 be revoked.
+	std::vector<std::string> OCSPcertChainRevokedCerts; // All certs found to be revoked by OCSP will be inserted here.
 
-	for (int i = 0; i < sk_X509_num(certStack) - 1; i++)
+	for (int i = 0; i < sk_X509_num(certStack) - 1; i++) // Going through all certs of the chain file.
 	{
 
 		X509 *thisCert = NULL, *thisCertIssuer = NULL;
@@ -157,7 +160,7 @@ int main()
 		thisCert = sk_X509_value(certStack, i);
 		thisCertIssuer = sk_X509_value(certStack, i + 1);
 
-		std::vector<std::string> ocspURLs = getOCSPURLs(thisCert);
+		std::vector<std::string> ocspURLs = getocspURLs(thisCert); // Get all URLs as a std::vector<string>.
 
 		for (std::string thisURL : ocspURLs) // Iterate through all provided URLs until one of them responds.
 		{
@@ -166,7 +169,7 @@ int main()
 
 			OCSP_REQUEST *thisRequest = createOCSPRequest(certID, thisURL);
 
-			// Parse the URL
+			// Parse the URL.
 			char *host = NULL, *port = NULL, *path = NULL;
 			int useSSL;
 			if (OCSP_parse_url(thisURL.c_str(), &host, &port, &path, &useSSL) == 0)
@@ -208,12 +211,10 @@ int main()
 
 			// Request timeout handling goes here, impotant but can be done later.
 
-			
 			// Execute the connection.
 			OCSP_RESPONSE *thisResponse = NULL;
 
-			int returnValue = OCSP_sendreq_nbio(&thisResponse, requestCTX);
-			if (returnValue == 0)
+			if (OCSP_sendreq_nbio(&thisResponse, requestCTX) == 0)
 			{
 				std::cerr << "Error occured in sending the request" << std::endl;
 				exit(-1);
@@ -228,29 +229,27 @@ int main()
 			//
 
 			// Check the status of the certificate from the response.
-			int status, reason;
+			int returnedOcspStatus, returnedOcspReason;
 			ASN1_GENERALIZEDTIME *revokedTime = NULL;
-			getCertificateStatus(thisResponse, certID, &status, &reason, &revokedTime);
-			
+			getCertificateStatus(thisResponse, certID, &returnedOcspStatus, &returnedOcspReason, &revokedTime);
+
 			OCSP_RESPONSE_free(thisResponse);
 			OCSP_REQUEST_free(thisRequest); //Also frees certID.
-			
 
-
-			if (status == V_OCSP_CERTSTATUS_GOOD)
+			if (returnedOcspStatus == V_OCSP_CERTSTATUS_GOOD)
 			{
 				// This certificate is valid, so we can break out (of the URLs loop) and start validating other certs.
 				break;
 			}
-			else if (status == V_OCSP_CERTSTATUS_REVOKED)
+			else if (returnedOcspStatus == V_OCSP_CERTSTATUS_REVOKED)
 			{
 				OCSPvalidityStatus = 1;													// Set the status as revoked.
 				OCSPcertChainRevokedCerts.push_back(getSerialNumberFromX509(thisCert)); // Add it to the list of revoked certs from the input chain file.
 				// Add code here to print the revocation time.
 				// ASN1_GENERALIZEDTIME_free(revokedTime);
-				break;																	// Break out of the URLs loop and go on to check further certs.
+				break; // Break out of the URLs loop and go on to check further certs.
 			}
-			else if (status == V_OCSP_CERTSTATUS_UNKNOWN)
+			else if (returnedOcspStatus == V_OCSP_CERTSTATUS_UNKNOWN)
 			{
 				std::cerr << "Certicate status is UNKNOWN by OCSP Server." << std::endl;
 				// break; check if one URL returns "unkown status", do all other URLs also return unknown status????????
@@ -260,7 +259,7 @@ int main()
 				std::cerr << "Invalid OCSP status code received." << std::endl;
 				exit(-1);
 			}
-			
+
 		} // End of inner URL loop.
 
 	} // End of of the loop going through the chain file.
@@ -276,7 +275,8 @@ int main()
 	}
 	else // Non-revoked
 	{
-		std::cout << "\nChain file is VALID because none of the certificates from the chain file were returned as revoked from the OCSP server.\n" << std::endl;
+		std::cout << "\nChain file is VALID because none of the certificates from the chain file were returned as revoked from the OCSP server.\n"
+				  << std::endl;
 	}
 
 	return 0;

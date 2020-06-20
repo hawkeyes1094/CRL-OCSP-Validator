@@ -10,36 +10,14 @@ These function definations in this file:
 
 */
 
-
 #include "Common.h"
 #include "CRLFunctions.h"
 
 using namespace std;
 
-/*X509_CRL *getNewCRLFromPath(string CRLFilePath)
-{
-    BIO *newCRLbio = NULL;
-
-    newCRLbio = BIO_new(BIO_s_file());
-
-    if (BIO_read_filename(newCRLbio, CRLFilePath.c_str()) <= 0) // Load the file (from the path) into the new BIO.
-    {
-        cout << "Error loading CRL into memory." << endl;
-    }
-
-    X509_CRL *newCRL = d2i_X509_CRL_bio(newCRLbio, NULL); //if (format == FORMAT_PEM) crl=PEM_read_bio_X509_CRL(bio,NULL,NULL,NULL);
-    if (newCRL == NULL)
-    {
-        cout << "Error converting DER to X509_CRL" << endl;
-        exit(-1);
-    }
-    BIO_free(newCRLbio);
-    return newCRL;
-}*/
-
 X509_CRL *getNewCRLFromPath(string CRLFilePath)
 {
-    std::cout<< "hello\n";
+
     BIO *newCRLbio = NULL;
 
     newCRLbio = BIO_new(BIO_s_file());
@@ -53,7 +31,7 @@ X509_CRL *getNewCRLFromPath(string CRLFilePath)
     // We need to check which one it is.
     // We use the fact DER encoded files always begin with byte 0x30 (aka char '0' in ASCII) and PEM encoded files begin with "----".
 
-    char *firstByte = (char*)malloc(sizeof(char)); // Because the sizeof(char) = 1 byte.
+    char *firstByte = (char *)malloc(sizeof(char)); // Because the sizeof(char) = 1 byte.
     size_t bytesRead;
     if (BIO_read_ex(newCRLbio, firstByte, 1, &bytesRead) == 0) // Reads the first byte into firstByte.
     {
@@ -98,7 +76,7 @@ string getRevokedSerialNumberFromX509(const X509_REVOKED *input)
     return convertASN1ToString(X509_REVOKED_get0_serialNumber(input));
 }
 
-void printCRLSerialNumbers(map<string, int> revokedSerialNumbers)  // Display all serial numbers in the CRL file.
+void printCRLSerialNumbers(map<string, int> revokedSerialNumbers) // Display all serial numbers in the CRL file.
 {
     // Display all serial numbers in the CRT file.
 
