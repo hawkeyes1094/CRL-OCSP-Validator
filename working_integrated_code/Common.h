@@ -1,12 +1,11 @@
 #pragma once
 
 /*
-    All standard header files required by us.
+    All standard header files required by this application.
     
 
 */
 
-// #include <bits/stdc++.h>
 #include <openssl/pem.h>
 #include <openssl/x509.h>
 #include <openssl/x509v3.h>
