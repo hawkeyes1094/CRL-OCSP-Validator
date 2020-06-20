@@ -247,7 +247,7 @@ int main()
 				OCSPvalidityStatus = 1;													// Set the status as revoked.
 				OCSPcertChainRevokedCerts.push_back(getSerialNumberFromX509(thisCert)); // Add it to the list of revoked certs from the input chain file.
 				// Add code here to print the revocation time.
-				ASN1_GENERALIZEDTIME_free(revokedTime);
+				// ASN1_GENERALIZEDTIME_free(revokedTime);
 				break;																	// Break out of the URLs loop and go on to check further certs.
 			}
 			else if (status == V_OCSP_CERTSTATUS_UNKNOWN)
