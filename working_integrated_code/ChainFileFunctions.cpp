@@ -91,6 +91,49 @@ string getSerialNumberFromX509(X509 *input)
     return convertASN1ToString(X509_get_serialNumber(input));
 }
 
+
+/*
+We implicitly assume that the user will provide certificates of either one of the two orders :
+1. leaf, intermediates, root
+2. root, intermediates, leaf
+
+The correct order required for the program to work is :
+leaf , intermediates, root
+
+This function changes the order to the correct one
+*/
+STACK_OF(X509) * correctCertStackOrder(STACK_OF(X509) *certStack)
+{
+    X509 *firstCert = sk_X509_value(certStack, 0);
+
+    // Implicitly assumes root is at the beginning
+    if(X509_check_ca(firstCert) == 1)
+    {
+        // Allocate a new stack of the same size as the original
+        int stackSize = sk_X509_num(certStack);
+        STACK_OF(X509) *newCertStack = sk_X509_new_reserve(NULL, stackSize);
+        if(newCertStack == NULL)
+        {
+            std::cerr<<"Error creating new X509 stack"<<std::endl;
+            exit(-1);
+        }
+
+        // Insert the certs into the new stacks in the reverse order
+        for(int i = stackSize -1; i >= 0; i--)
+        {
+            sk_X509_push(newCertStack, sk_X509_value(certStack, i));
+        }
+
+        sk_X509_free(certStack);
+
+        return newCertStack;
+    }
+    else {
+        return certStack;
+    }
+}
+
+
 void printCertChainSerialNumbers(vector<string> chainFileSerialNumbers)  // Display all serial numbers in the chain file.
 {
     cout << "\nThese are the serial numbers in the chain file:" << endl;

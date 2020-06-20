@@ -63,12 +63,15 @@ int main()
 
 	std::vector<std::string> chainFileSerialNumbers;
 
-	STACK_OF(X509) *cert_stack = getCertStackFromPath(certChainFilePath); //Get the stack of certificates from the path.
-	int numberOfCertificatesInChain = sk_X509_num(cert_stack);			  // Get the number of certificates in the chain file.
+	STACK_OF(X509) *certStack = getCertStackFromPath(certChainFilePath); //Get the stack of certificates from the path.
+	
+	certStack = correctCertStackOrder(certStack);						// Correct the order of the certificate stack
+
+	int numberOfCertificatesInChain = sk_X509_num(certStack);			  // Get the number of certificates in the chain file.
 
 	for (int i = 0; i < numberOfCertificatesInChain; i++)
 	{
-		X509 *temp = sk_X509_value(cert_stack, i);						 // Pick one cert from the stack.
+		X509 *temp = sk_X509_value(certStack, i);						 // Pick one cert from the stack.
 		chainFileSerialNumbers.push_back(getSerialNumberFromX509(temp)); // Add the serial number to the chainFileSerialNumbers vector.
 	}
 
@@ -154,13 +157,13 @@ int main()
 	int OCSPvalidityStatus = 0; // Let 0 be non-revoked and 1 be revoked.
 	std::vector<std::string> OCSPcertChainRevokedCerts;
 
-	for (int i = 0; i < sk_X509_num(cert_stack) - 1; i++)
+	for (int i = 0; i < sk_X509_num(certStack) - 1; i++)
 	{
 
 		X509 *thisCert = NULL, *thisCertIssuer = NULL;
 
-		thisCert = sk_X509_value(cert_stack, i);
-		thisCertIssuer = sk_X509_value(cert_stack, i + 1);
+		thisCert = sk_X509_value(certStack, i);
+		thisCertIssuer = sk_X509_value(certStack, i + 1);
 
 		std::vector<std::string> ocspURLs = getOCSPURLs(thisCert);
 
