@@ -1,4 +1,4 @@
-//
+// These are the function declarations for OCSP functionality.
 
 std::vector<std::string> getOCSPURLs(X509 *cert);
 
