@@ -18,19 +18,23 @@ using namespace std;
 
 X509_CRL *getNewCRLFromPath(string CRLFilePath)
 {
-    BIO *crlbio = NULL;
-    crlbio = BIO_new(BIO_s_file());
-    if (BIO_read_filename(crlbio, CRLFilePath.c_str()) <= 0)
-        cout << "Error loading CRL into memory." << endl;
+    BIO *newCRLbio = NULL;
 
-    X509_CRL *crl = d2i_X509_CRL_bio(crlbio, NULL); //if (format == FORMAT_PEM) crl=PEM_read_bio_X509_CRL(bio,NULL,NULL,NULL);
-    if (crl == NULL)
+    newCRLbio = BIO_new(BIO_s_file());
+
+    if (BIO_read_filename(newCRLbio, CRLFilePath.c_str()) <= 0) // Load the file (from the path) into the new BIO.
+    {
+        cout << "Error loading CRL into memory." << endl;
+    }
+
+    X509_CRL *newCRL = d2i_X509_CRL_bio(newCRLbio, NULL); //if (format == FORMAT_PEM) crl=PEM_read_bio_X509_CRL(bio,NULL,NULL,NULL);
+    if (newCRL == NULL)
     {
         cout << "Error converting DER to X509_CRL" << endl;
         exit(-1);
     }
-    BIO_free(crlbio);
-    return crl;
+    BIO_free(newCRLbio);
+    return newCRL;
 }
 
 string getRevokedSerialNumberFromX509(const X509_REVOKED *input)
@@ -45,7 +49,7 @@ void printCRLSerialNumbers(map<string, int> revokedSerialNumbers)  // Display al
     cout << "\nThese are the serial numbers in the CRL file:" << endl;
     for (map<string, int>::iterator it = revokedSerialNumbers.begin(); it != revokedSerialNumbers.end(); it++)
     {
-        cout << (it->first) << " " << it->second << endl;
+        cout << (it->first) << " " << (it->second) << endl;
     }
     cout << endl;
 }
