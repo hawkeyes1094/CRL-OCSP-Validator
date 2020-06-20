@@ -13,6 +13,7 @@
 #include <openssl/bio.h>
 #include <openssl/safestack.h>
 #include <openssl/ssl.h>
+#include <openssl/err.h>
 #include <openssl/ocsp.h>
 
 #include <string>
