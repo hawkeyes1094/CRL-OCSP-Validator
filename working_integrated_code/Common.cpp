@@ -1,4 +1,9 @@
 // For common functions required in other cpp files.
+/*
+We have the following functions in file:
+1. std::string convertASN1ToString(const ASN1_INTEGER *input);
+
+/*
 
 #include "Common.h"
 
