@@ -1,27 +1,38 @@
+/*
+This contains functions required for OCSP functionality. The functions in this file are:
+1. std::vector<std::string> getOCSPURLs(X509 *inputCert);
+2. OCSP_CERTID *getCertificateID(X509 *cert, X509 *issuerCert);
+3. OCSP_REQUEST *createOCSPRequest(OCSP_CERTID *certID, std::string OCSPURL);
+4. void parseURL(char *OCSPURL, char **host, char **port, char **path, int *useSSL);
+5. OCSP_REQ_CTX *createOCSPRequestCTX(BIO *connBIO, char *path, char *host);
+6. void getCertificateStatus(OCSP_RESPONSE *response, OCSP_CERTID *certID, int *status, int *reason, ASN1_GENERALIZEDTIME **revokedTime);
+
+
+*/
+
+
 #include "Common.h"
 #include "OCSPFunctions.h"
 
-
-//
-
 using namespace std;
 
-// Return a vector of OCSP Responder URLs present in the certificate
-std::vector<std::string> getOCSPURLs(X509 *cert)
-{
-	std::vector<std::string> OCSPURLs;
 
-	// Stack contains all URLs present in AIA extension
-	// X509_get1_ocsp() is an in-built function
-	STACK_OF(OPENSSL_STRING) *strStack = X509_get1_ocsp(cert);
+// Return a vector of OCSP Responder URLs present in the certificate
+std::vector<std::string> getOCSPURLs(X509 *inputCert)
+{
+	std::vector<std::string> OCSPURLs; // All URLs will be inserted here and the vector will be returned.
+
+	// Stack will contain all URLs present in AIA extension.
+	// X509_get1_ocsp() is an in-built function to get the stack of URLs from the cert.
+	STACK_OF(OPENSSL_STRING) *strStack = X509_get1_ocsp(inputCert);
 	int stackSize = sk_OPENSSL_STRING_num(strStack);
 
 	for (int i = 0; i < stackSize; i++)
 	{
-		// Constructor initialization
-		std::string currOCSPURL(sk_OPENSSL_STRING_value(strStack, i));
+		// Constructor initialization.
+		std::string currOCSPurl(sk_OPENSSL_STRING_value(strStack, i));
 
-		OCSPURLs.push_back(currOCSPURL);
+		OCSPURLs.push_back(currOCSPurl);
 	}
 
 	sk_OPENSSL_STRING_free(strStack);
@@ -41,7 +52,7 @@ OCSP_CERTID *getCertificateID(X509 *cert, X509 *issuerCert)
 	}
 }
 
-// Create an OCSP_REQUEST structure and add the cert ID to it
+// Create an OCSP_REQUEST structure and add the cert ID to it.
 OCSP_REQUEST *createOCSPRequest(OCSP_CERTID *certID, std::string OCSPURL)
 {
 	OCSP_REQUEST *request = NULL;
