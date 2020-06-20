@@ -13,7 +13,6 @@ This contains functions required for OCSP functionality. The functions in this f
 #include "Common.h"
 #include "OCSPFunctions.h"
 
-using namespace std;
 
 // Return a vector of OCSP Responder URLs present in the certificate
 std::vector<std::string> getocspURLs(X509 *inputCert)

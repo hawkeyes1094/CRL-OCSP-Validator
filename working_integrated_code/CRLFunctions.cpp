@@ -13,9 +13,8 @@ These function definations in this file:
 #include "Common.h"
 #include "CRLFunctions.h"
 
-using namespace std;
 
-X509_CRL *getNewCRLFromPath(string CRLFilePath)
+X509_CRL *getNewCRLFromPath(std::string CRLFilePath)
 {
 
     BIO *newCRLbio = NULL;
@@ -24,7 +23,7 @@ X509_CRL *getNewCRLFromPath(string CRLFilePath)
 
     if (BIO_read_filename(newCRLbio, CRLFilePath.c_str()) <= 0) // Load the file (from the path) into the new BIO.
     {
-        cout << "Error loading CRL into memory." << endl;
+        std::cout << "Error loading CRL into memory." << std::endl;
     }
 
     // It is possible for the CRL to be encoded in DER or PEM formats.
@@ -52,7 +51,7 @@ X509_CRL *getNewCRLFromPath(string CRLFilePath)
 
         if (newCRL == NULL)
         {
-            cout << "Error reading the DER encoded CRL file." << endl;
+            std::cout << "Error reading the DER encoded CRL file." << std::endl;
             exit(-1);
         }
     }
@@ -62,7 +61,7 @@ X509_CRL *getNewCRLFromPath(string CRLFilePath)
 
         if (newCRL == NULL)
         {
-            cout << "Error reading the PEM encoded CRL file." << endl;
+            std::cout << "Error reading the PEM encoded CRL file." << std::endl;
             exit(-1);
         }
     }
@@ -71,19 +70,19 @@ X509_CRL *getNewCRLFromPath(string CRLFilePath)
     return newCRL;
 }
 
-string getRevokedSerialNumberFromX509(const X509_REVOKED *input)
+std::string getRevokedSerialNumberFromX509(const X509_REVOKED *input)
 {
     return convertASN1ToString(X509_REVOKED_get0_serialNumber(input));
 }
 
-void printCRLSerialNumbers(map<string, int> revokedSerialNumbers) // Display all serial numbers in the CRL file.
+void printCRLSerialNumbers(std::map<std::string, int> revokedSerialNumbers) // Display all serial numbers in the CRL file.
 {
     // Display all serial numbers in the CRT file.
 
-    cout << "\nThese are the serial numbers in the CRL file:" << endl;
-    for (map<string, int>::iterator it = revokedSerialNumbers.begin(); it != revokedSerialNumbers.end(); it++)
+    std::cout << "\nThese are the serial numbers in the CRL file:" << std::endl;
+    for (std::map<std::string, int>::iterator it = revokedSerialNumbers.begin(); it != revokedSerialNumbers.end(); it++)
     {
-        cout << (it->first) << " " << (it->second) << endl;
+        std::cout << (it->first) << " " << (it->second) << std::endl;
     }
-    cout << endl;
+    std::cout << std::endl;
 }

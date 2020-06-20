@@ -26,7 +26,6 @@ g++ -o application Common.o ChainFileFunctions.o CRLFunctions.o OCSPFunctions.o 
 #include "CRLFunctions.h"
 #include "OCSPFunctions.h"
 
-using namespace std;
 
 std::string checkIfFileHasBeenDraggedIn(std::string originalPath) // If the file has been dragged into the console, single quotes will be present at both the start and end of the string, which have to be removed.
 {
@@ -101,13 +100,13 @@ int main()
 
 	// Extract serial numbers of all revoked certificates, and puts it in a map for fast access.
 
-	map<std::string, int> revokedSerialNumbers;
+	std::map<std::string, int> revokedSerialNumbers;
 	X509_REVOKED *revStackEntry = NULL;
 
 	for (int i = 0; i < numberOfRevokedCeritficates; i++)
 	{
 		revStackEntry = sk_X509_REVOKED_value(revokedStack, i);					 //Pick one from the stack.
-		string thisSerialNumber = getRevokedSerialNumberFromX509(revStackEntry); // Extract it's serial number.
+		std::string thisSerialNumber = getRevokedSerialNumberFromX509(revStackEntry); // Extract it's serial number.
 
 		revokedSerialNumbers[thisSerialNumber] = (i + 1); // Add its index to the revokedSerialNumbers map. (1 - indexed)
 	}
