@@ -8,6 +8,7 @@ These function definations in this file:
 2. string getSerialNumberFromX509(X509 *input);
 3. STACK_OF(X509) * correctCertStackOrder(STACK_OF(X509) *certStack);
 4. void printCertChainSerialNumbers(vectot<string> chainFileSerialNumbers)
+
 */
 
 #include "Common.h"
@@ -16,21 +17,20 @@ These function definations in this file:
 
 using namespace std;
 
-STACK_OF(X509) * getCertStackFromPath(string certStackFilepath)
+STACK_OF(X509) * getCertStackFromPath (string certStackFilepath)
 {
-
 	// Convert filepath to a C-style string, this is needed for openssl.
     char filePath[certStackFilepath.length() + 1];
     strcpy(filePath, certStackFilepath.c_str());
 
-    SSL_CTX *sslCtx = SSL_CTX_new(SSLv23_server_method());
+    SSL_CTX *sslCtx = SSL_CTX_new(SSLv23_server_method()); // Create a new context object.
     if(sslCtx == NULL)
     {
         cerr << "Failed to create SSL_CTX object." << endl;
         exit(-1);
     }
 
-    int result = SSL_CTX_use_certificate_chain_file(sslCtx, filePath);
+    int result = SSL_CTX_use_certificate_chain_file(sslCtx, filePath); // Load the chain file (from the path) into the context object.
     if(result != 1)
     {
         cerr << "Failed to load certificates into the SSL_CTX object." << endl;
@@ -42,14 +42,13 @@ STACK_OF(X509) * getCertStackFromPath(string certStackFilepath)
     X509 *leaf;
     int num;
 
-    // Get the certs from sslCtx into temp_stack
+    // Get the certs from sslCtx into tempCertStack.
     if (SSL_CTX_get0_chain_certs(sslCtx, &tempCertStack) == 0)
     {
         cout << "Error in getting stack from SSL_CTX" << endl;
         exit(-1);
     }
-
-    // Print the leaf cert
+	
     leaf = SSL_CTX_get0_certificate(sslCtx);
     if(leaf == NULL)
     {
@@ -79,7 +78,6 @@ STACK_OF(X509) * getCertStackFromPath(string certStackFilepath)
         cout << "Error inserting leaf cert into stack" << endl;
         exit(-1);
     }
-    // cout<<"Number of certs in stack = "<<num<<endl;
 
     SSL_CTX_free(sslCtx);
 
@@ -101,16 +99,16 @@ We implicitly assume that the user will provide certificates of either one of th
 The correct order required for the program to work is :
 leaf , intermediates, root
 
-This function changes the order to the correct one
+This function changes the order to the correct one.
 */
 STACK_OF(X509) * correctCertStackOrder(STACK_OF(X509) *certStack)
 {
     X509 *firstCert = sk_X509_value(certStack, 0);
 
-    // Implicitly assumes root is at the beginning
+    // Implicitly assumes root is at the beginning.
     if(X509_check_ca(firstCert) == 1)
     {
-        // Allocate a new stack of the same size as the original
+        // Allocate a new stack of the same size as the original.
         int stackSize = sk_X509_num(certStack);
         STACK_OF(X509) *newCertStack = sk_X509_new_reserve(NULL, stackSize);
         if(newCertStack == NULL)
@@ -129,7 +127,8 @@ STACK_OF(X509) * correctCertStackOrder(STACK_OF(X509) *certStack)
 
         return newCertStack;
     }
-    else {
+    else 
+    {
         return certStack;
     }
 }
