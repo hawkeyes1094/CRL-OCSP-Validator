@@ -15,7 +15,6 @@ These function definations in this file:
 #include "ChainFileFunctions.h"
 #include <string.h> // For using strcpy.
 
-
 STACK_OF(X509) * getCertStackFromPath(std::string certStackFilepath)
 {
     // Convert filepath to a C-style string, this is needed for openssl.
@@ -129,10 +128,10 @@ STACK_OF(X509) * correctCertStackOrder(STACK_OF(X509) * certStack)
 
 void printCertChainSerialNumbers(std::vector<std::string> chainFileSerialNumbers) // Display all serial numbers in the chain file.
 {
-    std::cerr << "\nThese are the serial numbers in the chain file:" << std::endl;
+    std::cout << "\nThese are the serial numbers in the chain file:" << std::endl;
     for (int i = 0; i < chainFileSerialNumbers.size(); i++)
     {
-        std::cerr << (i + 1) << ". " << chainFileSerialNumbers[i] << std::endl;
+        std::cout << (i + 1) << ". " << chainFileSerialNumbers[i] << std::endl;
     }
-    std::cerr << std::endl;
+    std::cout << std::endl;
 }

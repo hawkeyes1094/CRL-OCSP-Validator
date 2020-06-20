@@ -13,7 +13,6 @@ These function definations in this file:
 #include "Common.h"
 #include "CRLFunctions.h"
 
-
 X509_CRL *getNewCRLFromPath(std::string CRLFilePath)
 {
 
@@ -23,7 +22,7 @@ X509_CRL *getNewCRLFromPath(std::string CRLFilePath)
 
     if (BIO_read_filename(newCRLbio, CRLFilePath.c_str()) <= 0) // Load the file (from the path) into the new BIO.
     {
-        std::cout << "Error loading CRL into memory." << std::endl;
+        std::cerr << "Error loading CRL into memory." << std::endl;
     }
 
     // It is possible for the CRL to be encoded in DER or PEM formats.
@@ -51,7 +50,7 @@ X509_CRL *getNewCRLFromPath(std::string CRLFilePath)
 
         if (newCRL == NULL)
         {
-            std::cout << "Error reading the DER encoded CRL file." << std::endl;
+            std::cerr << "Error reading the DER encoded CRL file." << std::endl;
             exit(-1);
         }
     }
@@ -61,7 +60,7 @@ X509_CRL *getNewCRLFromPath(std::string CRLFilePath)
 
         if (newCRL == NULL)
         {
-            std::cout << "Error reading the PEM encoded CRL file." << std::endl;
+            std::cerr << "Error reading the PEM encoded CRL file." << std::endl;
             exit(-1);
         }
     }

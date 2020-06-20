@@ -13,14 +13,14 @@ std::string convertASN1ToString(const ASN1_INTEGER *input) // Converts the seria
 	BIGNUM *tempBignum = ASN1_INTEGER_to_BN(input, NULL);
 	if (!tempBignum)
 	{
-		std::cout << "Error converting ASN1INT to BIGNUM" << std::endl;
+		std::cerr << "Error converting ASN1INT to BIGNUM" << std::endl;
 		exit(-1);
 	}
 
 	char *tempHex = BN_bn2hex(tempBignum);
 	if (!tempBignum)
 	{
-		std::cout << "Error converting BIGNUM to char*" << std::endl;
+		std::cerr << "Error converting BIGNUM to char*" << std::endl;
 		BN_free(tempBignum);
 		exit(-1);
 	}
