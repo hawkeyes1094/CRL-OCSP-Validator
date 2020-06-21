@@ -242,18 +242,13 @@ int main()
 			}
 			else if (returnedOcspStatus == V_OCSP_CERTSTATUS_REVOKED)
 			{
-				OCSPvalidityStatus = 1;													// Set the status as revoked.
+				OCSPvalidityStatus = 1;							// Set the status as revoked.
 				OCSPcertChainRevokedCerts.push_back(getSerialNumberFromX509(thisCert)); // Add it to the list of revoked certs from the input chain file.
 				break; // Break out of the URLs loop and go on to check further certs.
 			}
-			else if (returnedOcspStatus == V_OCSP_CERTSTATUS_UNKNOWN)
-			{
-				std::cerr << "Certicate status is UNKNOWN by OCSP Server." << std::endl;
-				// break; check if one URL returns "unkown status", do all other URLs also return unknown status????????
-			}
 			else
 			{
-				std::cerr << "Invalid OCSP status code received." << std::endl;
+				std::cerr << "Unknown OCSP status code received." << std::endl;
 				exit(-1);
 			}
 
