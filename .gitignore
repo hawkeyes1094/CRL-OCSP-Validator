@@ -1,9 +1,11 @@
-*.exe
-*.out
-*.o
-
-.vscode
-
 # Ignore the build dir
 build
+
+# Ignore the object files.
+*.o
+
+# Ignore VS Code files.
+.vscode
+
+
 
