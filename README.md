@@ -4,6 +4,7 @@
 Instructions to install (for Ubuntu based systems):
 
 After cloning the directory,
+
 0. Install the OpenSSL library => [sudo apt-get install libssl-dev]
 1. Make a build directory => [mkdir build]
 2. Go into into build directory => [cd build]
