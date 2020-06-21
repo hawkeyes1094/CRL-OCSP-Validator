@@ -1,3 +1,11 @@
 *.exe
 *.out
 *.o
+
+.vscode
+
+# Ignore the build dir
+build
+
+# Ignore any executables
+bin/*
