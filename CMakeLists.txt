@@ -32,6 +32,7 @@ set(SOURCE_FILES
 
 
 
+SET( CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin")
 
 # Add the target.
 add_executable(
