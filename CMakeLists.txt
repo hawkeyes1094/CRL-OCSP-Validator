@@ -1,33 +1,28 @@
+# If you make changes to this file and want to implement them, make sure you cd into build dir and delete all older files, like so:
 # rm -rf ./*
 # cmake ..
 # make
 
 
+
+
 cmake_minimum_required (VERSION 3.10.2)
 
-# set the project name
+
+
+# Set the project name.
 project("CRL-OCSP-Validator")
 
-# find openssl package
-find_package(OpenSSL REQUIRED)
-
-set(OPENSSL_USE_STATIC_LIBS TRUE)
-
-#flags
 
 
 
-
-#files
-
-
-
-
-#include files (folders where compiler should look for header files)
+# Tell the compiler which directories have the user-generated non-standard header files. We just have one, that is, (./include).
 include_directories( ./include  )
 
 
-set(SOURCE_FILES # paths of all source files will get stored in this variable/
+
+# Paths of all source files will get stored in this variable.
+set(SOURCE_FILES
 	./src/application.cpp
 	./src/Common.cpp
 	./src/ChainFileFunctions.cpp
@@ -35,14 +30,25 @@ set(SOURCE_FILES # paths of all source files will get stored in this variable/
 	./src/OCSPFunctions.cpp
 ) 
 
-#target
+
+
+
+# Add the target.
 add_executable(
 	application # this will be the name of the executable.
 	${SOURCE_FILES}
 )
 
-target_link_libraries(application OpenSSL::Crypto)
+
+
+
+# Find the openssl package.
+find_package(OpenSSL REQUIRED)
+
+
+
+
+# target_link_libraries(application OpenSSL::Crypto)
 target_link_libraries(application OpenSSL::SSL)
-target_link_libraries(application ${CMAKE_DL_LIBS})
 
-
+# Looks like SSL is a superset of Crypto, so the first target_link_libraries call is not needed.
