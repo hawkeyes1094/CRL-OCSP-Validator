@@ -10,5 +10,5 @@ After cloning the directory,
 2. Go into into build directory => [cd build]
 3. Run cmake (CMakeLists.txt is in the root) => [cmake ..]
 4. run make => [make]
-
-The executable (called application) will be created in the build directory. Can be run with [./application]
+5. The executable (called application) will be created in the root directory. Go to root => [cd ..]
+6. Run the executable => [./application]
