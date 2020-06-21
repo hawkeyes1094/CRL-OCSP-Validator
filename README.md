@@ -4,6 +4,6 @@
 Instructions to install:
 
 After cloning the directory,
-1. Go into into build directory. [cd build]
-2. Run cmake (CMakeLists.txt is in the root). [cmake ..]
-3. run make. [make]
+1. Go into into build directory => [cd build]
+2. Run cmake (CMakeLists.txt is in the root) => [cmake ..]
+3. run make => [make]
