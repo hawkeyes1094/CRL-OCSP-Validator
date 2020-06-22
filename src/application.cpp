@@ -47,14 +47,14 @@ int main()
 
 	// Display intro message.
 
-	std::cout << "\nThis is a tool to validate a given certificate chain file against a given CRL.\n"
+	std::cout << "\nThis is a tool to validate a certificate chain file against a given CRL.\n"
 			  << std::endl;
 	std::cout << "Built as an in-semester project by Pranav Kulkarni and Teja Juluru. Mentored by Prof Rajesh Gopakumar and HPE Technologist Vicramaraja ARV.\n"
 			  << std::endl;
 	std::cout << "----------------------------------------------------------------\n"
 			  << std::endl;
 
-	// Get the path of the certificate chain file
+	// Get the path of the certificate chain file.
 
 	std::cout << "Enter the full path of the certificate chain file. ";
 	std::cout << "Alternatively, drag and drop the file into this terminal window." << std::endl;
@@ -86,7 +86,7 @@ int main()
 	// Get the CRL file path from the user.
 
 	std::cout << "\n\nEnter the full path of the CRL file. ";
-	std::cout << "Alternatively, drag and drop the file into this terminal window." << std::endl;
+	std::cout << "Again, you could drag and drop here." << std::endl;
 	std::string CRLFilePath;
 	std::cin >> CRLFilePath;
 
@@ -127,22 +127,6 @@ int main()
 			CRLvalidityStatus = 1;							 // Set the status as revoked.
 			CRLcertChainRevokedCerts.push_back(toBeChecked); // Add it to the list of revoked certs from the input chain file.
 		}
-	}
-
-	if (CRLvalidityStatus == 1) // Revoked
-	{
-		std::cout << "\nChain file is INVALID because the following certificates from the chain file were found to be listed in the CRL." << std::endl;
-		for (int i = 0; i < CRLcertChainRevokedCerts.size(); i++)
-		{
-			std::string thisCert = CRLcertChainRevokedCerts[i];
-			std::cout << (i + 1) << ". " << thisCert << " was found at index " << revokedSerialNumbers[thisCert] << "." << std::endl;
-		}
-		std::cout << "\n\n";
-	}
-	else // Non-revoked
-	{
-		std::cout << "\nChain file is VALID because none of the certificates from the chain file were found to be listed in the CRL.\n"
-				  << std::endl;
 	}
 
 	//===============================================
@@ -256,20 +240,46 @@ int main()
 
 	} // End of of the loop going through the chain file.
 
+
+	std::cout << "\n----------------------------------------------------------------\n"
+			  << std::endl;
+
+	// Print CRL output.
+	if (CRLvalidityStatus == 1) // Revoked
+	{
+		std::cout << "\nResult of CRL Method : INVALID.\n"
+				  << "These certificates (of the chain file) were found in the CRL: \n";
+		for (int i = 0; i < CRLcertChainRevokedCerts.size(); i++)
+		{
+			std::string thisCert = CRLcertChainRevokedCerts[i];
+			std::cout << (i + 1) << ". " << thisCert << " was found at index " << revokedSerialNumbers[thisCert] << "." << std::endl;
+		}
+		std::cout << "\n";
+	}
+	else // Non-revoked
+	{
+		std::cout << "\nResult of CRL Method : VALID.\n"
+				  << std::endl;
+	}
+
+
+	// Print OCSP output.
 	if (OCSPvalidityStatus == 1) // Revoked
 	{
-		std::cout << "\nChain file is INVALID because the following certificates from the chain file were returned as revoked from the OCSP server." << std::endl;
+		std::cout << "\nResult of OCSP Method : INVALID.\n"
+				  << "These certificates (of the chain file) were returned as invalid by the OCSP server: \n";
 		for (int i = 0; i < OCSPcertChainRevokedCerts.size(); i++)
 		{
 			std::cout << (i + 1) << ". " << OCSPcertChainRevokedCerts[i] << std::endl;
 		}
-		std::cout << "\n\n";
+		std::cout << "\n";
 	}
 	else // Non-revoked
 	{
 		std::cout << "\nChain file is VALID because none of the certificates from the chain file were returned as revoked from the OCSP server.\n"
 				  << std::endl;
 	}
+
 
 	return 0;
 }
