@@ -1,7 +1,8 @@
 # CRL-OCSP-Validator
 6th semester project offered by HP Enterprises on certificate chain validation using CRLs and OCSP.
 
-Instructions to install (for Ubuntu based systems):
+## Instructions to install
+(for Ubuntu based systems):
 
 After cloning the directory,
 
