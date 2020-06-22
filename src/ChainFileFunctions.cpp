@@ -99,8 +99,22 @@ STACK_OF(X509) * correctCertStackOrder(STACK_OF(X509) * certStack)
     X509 *firstCert = sk_X509_value(certStack, 0);
 
     // Implicitly assumes root is at the beginning.
-    if (X509_check_ca(firstCert) == 1)
+    if (X509_check_ca(firstCert) == 1) // Frist cert is the root or some intermediate.
     {
+
+        // Before we reverse the order and return, we need to check if all pairs (i, i+1) follow a (Issuer, Issuee) structure.
+        for (int i = 0; i < sk_X509_num(certStack) - 1; i++)
+        {
+            // This checks if i issues (i+1)
+            int isIssued = X509_check_issued(sk_X509_value(certStack, i), sk_X509_value(certStack, i + 1));
+
+            if (isIssued != X509_V_OK) // if this condition is true, order is jumbled and we need to exit.
+            {
+                std::cerr << "The order of certificates in the chain is jumbled" << std::endl;
+                exit(-1);
+            }
+        }
+
         // Allocate a new stack of the same size as the original.
         int stackSize = sk_X509_num(certStack);
         STACK_OF(X509) *newCertStack = sk_X509_new_reserve(NULL, stackSize);
@@ -122,6 +136,17 @@ STACK_OF(X509) * correctCertStackOrder(STACK_OF(X509) * certStack)
     }
     else
     {
+        // Now the first cert is definitely the leaf.
+        // We need to check if all pairs (i, i+1) follow a (Issuee, Issuer) structure.
+        for (int i = 0; i < sk_X509_num(certStack) - 1; i++)
+        {
+            int isIssued = X509_check_issued(sk_X509_value(certStack, i + 1), sk_X509_value(certStack, i));
+            if (isIssued != X509_V_OK)
+            {
+                std::cerr << "The order of certificates in the chain is jumbled" << std::endl;
+                exit(-1);
+            }
+        }
         return certStack;
     }
 }
