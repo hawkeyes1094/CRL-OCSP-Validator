@@ -66,7 +66,18 @@ int main()
 	std::vector<std::string> chainFileSerialNumbers;
 
 	STACK_OF(X509) *certStack = getCertStackFromPath(certChainFilePath); //Get the stack of certificates from the path.
+	
+	
+	/*
+	We implicitly assume that the user will provide certificates of either one of the two orders :
+	1. leaf, intermediates, root
+	2. root, intermediates, leaf
 
+	The correct order required for the program to work is :
+	leaf , intermediates, root
+
+	This function changes the order to the correct one.
+	*/
 	certStack = correctCertStackOrder(certStack); // Correct the order of the certificate stack
 
 	int numberOfCertificatesInChain = sk_X509_num(certStack); // Get the number of certificates in the chain file.
