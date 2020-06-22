@@ -3,9 +3,8 @@ This contains functions required for OCSP functionality. The functions in this f
 1. std::vector<std::string> getocspURLs(X509 *inputCert);
 2. OCSP_CERTID *getCertificateID(X509 *thisCert, X509 *issuerCert);
 3. OCSP_REQUEST *createOCSPRequest(OCSP_CERTID *certID, std::string ocspURL);
-4. void parseURL(char *ocspURL, char **host, char **port, char **path, int *useSSL);
-5. OCSP_REQ_CTX *createOCSPRequestCTX(BIO *connBIO, char *path, char *host);
-6. void getCertificateStatus(OCSP_RESPONSE *response, OCSP_CERTID *certID, int *status, int *reason, ASN1_GENERALIZEDTIME **revokedTime);
+4. OCSP_REQ_CTX *createOCSPRequestCTX(BIO *connBIO, char *path, char *host);
+5. void getCertificateStatus(OCSP_RESPONSE *response, OCSP_CERTID *certID, int *status, int *reason, ASN1_GENERALIZEDTIME **revokedTime);
 
 
 */
@@ -70,16 +69,6 @@ OCSP_REQUEST *createOCSPRequest(OCSP_CERTID *certID, std::string ocspURL)
 	}
 
 	return request;
-}
-
-// Parse the URL and populate the host, port & path strings
-void parseURL(char *ocspURL, char **host, char **port, char **path, int *useSSL)
-{
-	if (!OCSP_parse_url(ocspURL, host, port, path, useSSL))
-	{
-		std::cerr << "Error in parsing URL" << std::endl;
-		exit(-1);
-	}
 }
 
 // Create an OCSP request context CTX structure
