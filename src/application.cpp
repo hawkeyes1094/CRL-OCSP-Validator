@@ -172,10 +172,6 @@ int main()
 
 			BIO_set_conn_port(connBIO, port);
 
-			//
-			// OCSP_REQUEST_print(outbio, req, 0); debug function which is not working at the moment.
-			//
-
 			OCSP_REQ_CTX *requestCTX = createOCSPRequestCTX(connBIO, path, host);
 
 			// Set the OCSP request.
@@ -192,8 +188,6 @@ int main()
 				exit(-1);
 			}
 
-			// Request timeout handling goes here, impotant but can be done later.
-
 			// Execute the connection.
 			OCSP_RESPONSE *thisResponse = NULL;
 
@@ -207,9 +201,6 @@ int main()
 			OCSP_REQ_CTX_free(requestCTX);
 			BIO_free_all(connBIO);
 
-			//
-			// OCSP_RESPONSE_print(); ; debug function which is not working at the moment.
-			//
 
 			// Check the status of the certificate from the response.
 			int returnedOcspStatus, returnedOcspReason;
