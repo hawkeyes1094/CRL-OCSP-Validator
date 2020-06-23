@@ -17,7 +17,7 @@ After cloning the directory,
 6. The executable (called application) will be created in the root directory. Go to root => `cd ..`
 7. Run the executable => `./application`
 
-## Note:
+## A note about the chain files:
 For OCSP to function properly, the chain needs to be in the right order. It can be from leaf to root, or vice versa. 
 We handle both these cases, and we assume there will be no input with jumbled order of certs.
 
