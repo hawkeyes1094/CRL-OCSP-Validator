@@ -6,12 +6,12 @@ using namespace std;
 
 
 /*
+
 g++ -c -o Common.o Common.cpp && \
 g++ -c -o ChainFileFunctions.o ChainFileFunctions.cpp && \
 g++ -c -o test_getCertStackFromPath.o test_getCertStackFromPath.cpp && \
 g++ -o test_getCertStackFromPath Common.o ChainFileFunctions.o test_getCertStackFromPath.o -lcrypto -lssl && \
 ./test_getCertStackFromPath
-
 
 */
 
@@ -31,7 +31,7 @@ vector<string> getVectorOfSerialNumbers(STACK_OF(X509) *certStack)
     for (int i = 0; i < numberOfCertificatesInChain; i++)
     {
         X509 *thisCert = sk_X509_value(certStack, i);                        // Pick one cert from the stack.
-        output.push_back(getSerialNumberFromX509(thisCert)); // Add the serial number to the functionOutputSerialNumbers vector.
+        output.push_back(getSerialNumberFromX509(thisCert)); // Add the serial number to the output vector.
     }
 
     return output;
@@ -58,7 +58,7 @@ int test()
 int main()
 {
     // This is a basic functionality test of getCertStackFromPath. 
-    // This function just handles one case of all correct inputs, any erros cause exit (-1).
+    // This function just handles one case of all correct inputs, any errors cause exit (-1).
 
     cout << "\n\nUnit testing of the funciton 'test_getCertStackFromPath': "<< endl;
     if (test() == 1)
