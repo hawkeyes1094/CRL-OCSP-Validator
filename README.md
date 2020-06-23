@@ -10,33 +10,33 @@ After cloning the directory,
    
 0. Install the OpenSSL library 
 
-`sudo apt-get install libssl-dev`
+   `sudo apt-get install libssl-dev`
 
 1. Start the terminal and navigate to the root of the project. 
 
 2. Make a build directory.
 
-```mkdir build```
+   ```mkdir build```
 
 3. Go into into build directory.
 
-```cd build```
+   ```cd build```
 
 4. Run cmake (CMakeLists.txt is in the root).
 
-```cmake ..```
+   ```cmake ..```
 
 5. Run make.
 
-```make```
+   ```make```
 
 6. The executable (called application) will be created in the root directory. Go to root.
 
-```cd ..```
+   ```cd ..```
 
 7. Run the executable.
 
-```./application```
+   ```./application```
 
 ## Verbose mode:
 Running the executable as ```./application -v``` will provide more information. This incudes: number of certificates in the chain file, number of certificates in the CRL file, number of certificates revoked by CRL method and number of certificates revoked by OCSP method.
