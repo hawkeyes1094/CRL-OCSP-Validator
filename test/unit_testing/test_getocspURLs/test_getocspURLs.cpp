@@ -44,7 +44,7 @@ int test()
 int main()
 {
     // This is a basic functionality test of getCertStackFromPath. 
-    // This function just handles one case of all correct inputs, any erros cause exit (-1).
+    // This function just handles one case of all correct inputs, any errors cause exit (-1).
 
     cout << "\n\nUnit testing of the funciton 'getocspURLs': "<< endl;
     if (test() == 1)
