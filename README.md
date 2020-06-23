@@ -6,7 +6,7 @@
 
 After cloning the directory,
 
-   ### Textual description => [command to run]
+   #### Textual description => [command to run]
    
 0. Install the OpenSSL library => [sudo apt-get install libssl-dev]
 1. Start the terminal and navigate to the root of the project. 
