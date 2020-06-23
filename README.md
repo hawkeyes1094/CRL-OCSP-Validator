@@ -38,6 +38,9 @@ After cloning the directory,
 
 ```./application```
 
+## Verbose mode:
+Running the executable as ```./application -v``` will provide more information. This incudes: number of certificates in the chain file, number of certificates in the CRL file, number of certificates revoked by CRL method and number of certificates revoked by OCSP method.
+
 ## A note about the chain files:
 For OCSP to function properly, the chain needs to be in the right order. It can be from leaf to root, or vice versa. 
 We handle both these cases, and we assume there will be no input with jumbled order of certs.
