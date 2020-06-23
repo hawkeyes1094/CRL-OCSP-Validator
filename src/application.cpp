@@ -25,8 +25,16 @@ std::string checkIfFileHasBeenDraggedIn(std::string originalPath) // If the file
 	return changedPath;
 }
 
-int main()
+int main(int argc, char **argv)
 {
+
+	int verboseFlag = 0; // 1 is VERBOSE and 0 is NORMAL.
+
+	if ((argc > 1) && (argv[1][1] == 'v')) // Check if verbose flag has been supplied as a command line argument.
+	{
+		verboseFlag = 1; // Will be used at the end to print more details.
+	}
+
 	OpenSSL_add_all_algorithms();
 	ERR_load_BIO_strings();
 
@@ -201,7 +209,6 @@ int main()
 			OCSP_REQ_CTX_free(requestCTX);
 			BIO_free_all(connBIO);
 
-
 			// Check the status of the certificate from the response.
 			int returnedOcspStatus, returnedOcspReason;
 			ASN1_GENERALIZEDTIME *revokedTime = NULL;
@@ -233,6 +240,16 @@ int main()
 
 	std::cout << "\n----------------------------------------------------------------\n"
 			  << std::endl;
+
+	if (verboseFlag == 1)
+	{
+		std::cout << "Number of certificates in the chain file: " << chainFileSerialNumbers.size() << std::endl;
+		std::cout << "Number of certificates in the CRL file: " << revokedSerialNumbers.size() << std::endl;
+		if (CRLvalidityStatus == 1)
+			std::cout << "Number of certificates revoked by CRL method: " << CRLcertChainRevokedCerts.size() << std::endl;
+		if (OCSPvalidityStatus == 1)
+			std::cout << "Number of certificates revoked by OCSP method: " << OCSPcertChainRevokedCerts.size() << std::endl;
+	}
 
 	// Print CRL output.
 	if (CRLvalidityStatus == 1) // Revoked
