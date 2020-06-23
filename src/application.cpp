@@ -273,7 +273,7 @@ int main(int argc, char **argv)
 	if (OCSPvalidityStatus == 1) // Revoked
 	{
 		std::cout << "\nResult of OCSP Method : REVOKED\n"
-				  << "These certificates (of the chain file) were returned as invalid by the OCSP server: \n";
+				  << "These certificates (of the chain file) were returned as revoked by the OCSP server: \n";
 		for (int i = 0; i < OCSPcertChainRevokedCerts.size(); i++)
 		{
 			std::cout << (i + 1) << ". " << OCSPcertChainRevokedCerts[i] << std::endl;
