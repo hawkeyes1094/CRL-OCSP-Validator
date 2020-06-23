@@ -1,0 +1,14 @@
+test_01.zip : test-ev-rsa.ssl.com
+md5 : 04039dd01aea487b4c8410e9dbd0a967  test_01.zip
+
+test_02.zip : test-dv-ecc.ssl.com
+md5 : f995818dc59bdc721966eee3ff699ec0  test_02.zip
+
+test_03.zip : sha256.badssl.com
+md5 : a2d29004f31ef4795e3c182a4ebab90e  test_03.zip
+
+test_04.zip : ecc256.badssl.com
+md5 : d59a64f0c8b59a47de4a434549650bc6  test_04.zip
+
+test_05.zip : ev-root.chain-demos.digicert.com
+md5 : 977761902e24f1bcf9a44be09913555d  test_05.zip

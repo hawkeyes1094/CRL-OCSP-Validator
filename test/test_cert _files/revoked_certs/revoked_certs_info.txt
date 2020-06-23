@@ -1,0 +1,14 @@
+test_01.zip : revoked-rsa-dv.ssl.com
+md5 : fd4af66b4eba56c6f1ea6d6655f63fdd  test_01.zip
+
+test_02.zip : revoked-rsa-ev.ssl.com
+md5 : 8ea33500b506786cc50083f3f575a8f5  test_02.zip
+
+test_03.zip : revoked.badssl.com
+md5 : 1f7742ef2ad0e684a3fe3014d106a928  test_03.zip
+
+test_04.zip : global-root-ca-revoked.chain-demos.digicert.com
+md5 : dee4cfcc2d0d0d5de379d1667be1c072  test_04.zip
+
+test_05.zip : ev-root-revoked.chain-demos.digicert.com
+md5 : 8443f65bac5cd0902cd9d61d22b4c2d0  test_05.zip
