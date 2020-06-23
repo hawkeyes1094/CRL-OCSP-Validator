@@ -237,7 +237,7 @@ int main()
 	// Print CRL output.
 	if (CRLvalidityStatus == 1) // Revoked
 	{
-		std::cout << "\nResult of CRL Method : INVALID\n"
+		std::cout << "\nResult of CRL Method : REVOKED\n"
 				  << "These certificates (of the chain file) were found in the CRL: \n";
 		for (int i = 0; i < CRLcertChainRevokedCerts.size(); i++)
 		{
@@ -255,7 +255,7 @@ int main()
 	// Print OCSP output.
 	if (OCSPvalidityStatus == 1) // Revoked
 	{
-		std::cout << "\nResult of OCSP Method : INVALID\n"
+		std::cout << "\nResult of OCSP Method : REVOKED\n"
 				  << "These certificates (of the chain file) were returned as invalid by the OCSP server: \n";
 		for (int i = 0; i < OCSPcertChainRevokedCerts.size(); i++)
 		{
