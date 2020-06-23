@@ -55,8 +55,6 @@ int main(int argc, char **argv)
 
 	getline(std::cin, certChainFilePath);
 
-	// std::cout << "hello" << std::endl;
-
 	certChainFilePath = checkIfFileHasBeenDraggedIn(certChainFilePath);
 
 	std::vector<std::string> chainFileSerialNumbers;

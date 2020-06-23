@@ -12,8 +12,7 @@ This contains functions required for OCSP functionality. The functions in this f
 #include "Common.h"
 #include "OCSPFunctions.h"
 
-
-// Return a vector of OCSP Responder URLs present in the certificate
+// Return a vector of OCSP Responder URLs present in the certificate.
 std::vector<std::string> getocspURLs(X509 *inputCert)
 {
 	std::vector<std::string> ocspURLs; // All URLs will be inserted here and the vector will be returned.
@@ -61,7 +60,7 @@ OCSP_REQUEST *createOCSPRequest(OCSP_CERTID *certID, std::string ocspURL)
 		exit(-1);
 	}
 
-	// Add nonce
+	// Add a random nonce.
 	if (OCSP_request_add1_nonce(request, NULL, 0) == 0)
 	{
 		std::cerr << "Error adding nonce to request" << std::endl;
@@ -71,7 +70,7 @@ OCSP_REQUEST *createOCSPRequest(OCSP_CERTID *certID, std::string ocspURL)
 	return request;
 }
 
-// Create an OCSP request context CTX structure
+// Create an OCSP request context CTX structure.
 OCSP_REQ_CTX *createOCSPRequestCTX(BIO *connBIO, char *path, char *host)
 {
 	OCSP_REQ_CTX *requestCTX = NULL;
@@ -91,7 +90,7 @@ OCSP_REQ_CTX *createOCSPRequestCTX(BIO *connBIO, char *path, char *host)
 	return requestCTX;
 }
 
-// Get the status of the certificate with ID certID from the response
+// Get the status of the certificate with ID certID from the response.
 void getCertificateStatus(OCSP_RESPONSE *response, OCSP_CERTID *certID, int *status, int *reason, ASN1_GENERALIZEDTIME **revokedTime)
 {
 	OCSP_BASICRESP *basicResp = NULL;

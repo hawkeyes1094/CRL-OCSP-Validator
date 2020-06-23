@@ -53,21 +53,21 @@ STACK_OF(X509) * getCertStackFromPath(std::string certStackFilepath)
     }
 
     // Create a copy of the stack
-    certStack = X509_chain_up_ref(tempCertStack); // This increases the referencability of tempCertStack by 1, and assigns it to certStack. Now, even if certStack is freed, leafCert will continue to function.
+    certStack = X509_chain_up_ref(tempCertStack); // This increases the reference count of tempCertStack by 1, and assigns it to certStack. Now, even if certStack is freed, leafCert will continue to function.
     if (certStack == NULL)
     {
         std::cerr << "Error creating copy of stack" << std::endl;
         exit(-1);
     }
 
-    X509_up_ref(leafCert); // This increases the referencability of leafCert by 1. Now, even if sslCtx is freed, leafCert will continue to function.
+    X509_up_ref(leafCert); // This increases the reference count of leafCert by 1. Now, even if sslCtx is freed, leafCert will continue to function.
     if (certStack == NULL)
     {
         std::cerr << "Failed to increment the reference count of the X509* vaariable." << std::endl;
         exit(-1);
     }
 
-    //Insert the leafCert cert into stack
+    //Insert the leafCert cert into stack.
     if (sk_X509_insert(certStack, leafCert, 0) == 0)
     {
         std::cerr << "Error inserting leafCert into stack" << std::endl;
@@ -108,7 +108,7 @@ STACK_OF(X509) * correctCertStackOrder(STACK_OF(X509) * certStack)
             // This checks if i issues (i+1)
             int isIssued = X509_check_issued(sk_X509_value(certStack, i), sk_X509_value(certStack, i + 1));
 
-            if (isIssued != X509_V_OK) // if this condition is true, order is jumbled and we need to exit.
+            if (isIssued != X509_V_OK) // If this condition is true, order is jumbled and we need to exit.
             {
                 std::cerr << "The order of certificates in the chain is jumbled" << std::endl;
                 exit(-1);

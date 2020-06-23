@@ -2,8 +2,6 @@
 
 /*
     All standard header files required by this application.
-    
-
 */
 
 #include <openssl/pem.h>
