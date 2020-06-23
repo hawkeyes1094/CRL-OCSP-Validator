@@ -5,16 +5,22 @@
 #include "CRLFunctions.h"
 #include "OCSPFunctions.h"
 
-
 std::string checkIfFileHasBeenDraggedIn(std::string originalPath) // If the file has been dragged into the console, single quotes will be present at both the start and end of the string, which have to be removed.
 {
 	std::string changedPath = originalPath;
 
-	if (changedPath[0] != '/') // Yes, the file has been dragged and dropped into the console.
+	if (changedPath[0] == '\'') // Yes, the file has been dragged and dropped into the console as it begins with a single quote.
 	{
-		// Remove the first and last chars.
-		changedPath.erase(changedPath.begin() + 0);
-		changedPath.erase(changedPath.end() - 1);
+		int indexOfSingleQuote = changedPath.find('\'');			 //Find the first single quote.
+		changedPath.erase(changedPath.begin() + indexOfSingleQuote); //Remove the first single quote.
+
+		indexOfSingleQuote = changedPath.find('\'');				 //Find the second single quote.
+		changedPath.erase(changedPath.begin() + indexOfSingleQuote); //Remove the second single quote.
+
+		if (changedPath[changedPath.size() - 1] == ' ') // Some terminals add a space to the very end.
+		{
+			changedPath.erase(changedPath.end() - 1); // This space has to be removed.
+		}
 	}
 	return changedPath;
 }
@@ -23,6 +29,8 @@ int main()
 {
 	OpenSSL_add_all_algorithms();
 	ERR_load_BIO_strings();
+
+	// setbuf(stdout, NULL);
 
 	// Display intro message.
 
@@ -38,15 +46,17 @@ int main()
 	std::cout << "Enter the full path of the certificate chain file. ";
 	std::cout << "Alternatively, drag and drop the file into this terminal window." << std::endl;
 	std::string certChainFilePath;
-	std::cin >> certChainFilePath;
+
+	getline(std::cin, certChainFilePath);
+
+	// std::cout << "hello" << std::endl;
 
 	certChainFilePath = checkIfFileHasBeenDraggedIn(certChainFilePath);
 
 	std::vector<std::string> chainFileSerialNumbers;
 
 	STACK_OF(X509) *certStack = getCertStackFromPath(certChainFilePath); //Get the stack of certificates from the path.
-	
-	
+
 	/*
 	We implicitly assume that the user will provide certificates of either one of the two orders :
 	1. leaf, intermediates, root
@@ -78,7 +88,7 @@ int main()
 	std::cout << "\n\nEnter the full path of the CRL file. ";
 	std::cout << "Again, you could drag and drop here." << std::endl;
 	std::string CRLFilePath;
-	std::cin >> CRLFilePath;
+	getline(std::cin, CRLFilePath);
 
 	CRLFilePath = checkIfFileHasBeenDraggedIn(CRLFilePath);
 
@@ -95,7 +105,7 @@ int main()
 
 	for (int i = 0; i < numberOfRevokedCeritficates; i++)
 	{
-		revStackEntry = sk_X509_REVOKED_value(revokedStack, i);					 //Pick one from the stack.
+		revStackEntry = sk_X509_REVOKED_value(revokedStack, i);						  //Pick one from the stack.
 		std::string thisSerialNumber = getRevokedSerialNumberFromX509(revStackEntry); // Extract it's serial number.
 
 		revokedSerialNumbers[thisSerialNumber] = (i + 1); // Add its index to the revokedSerialNumbers map. (1 - indexed)
@@ -216,9 +226,9 @@ int main()
 			}
 			else if (returnedOcspStatus == V_OCSP_CERTSTATUS_REVOKED)
 			{
-				OCSPvalidityStatus = 1;							// Set the status as revoked.
+				OCSPvalidityStatus = 1;													// Set the status as revoked.
 				OCSPcertChainRevokedCerts.push_back(getSerialNumberFromX509(thisCert)); // Add it to the list of revoked certs from the input chain file.
-				break; // Break out of the URLs loop and go on to check further certs.
+				break;																	// Break out of the URLs loop and go on to check further certs.
 			}
 			else
 			{
@@ -229,7 +239,6 @@ int main()
 		} // End of inner URL loop.
 
 	} // End of of the loop going through the chain file.
-
 
 	std::cout << "\n----------------------------------------------------------------\n"
 			  << std::endl;
@@ -252,7 +261,6 @@ int main()
 				  << std::endl;
 	}
 
-
 	// Print OCSP output.
 	if (OCSPvalidityStatus == 1) // Revoked
 	{
@@ -269,7 +277,6 @@ int main()
 		std::cout << "\nResult of OCSP Method : VALID\n"
 				  << std::endl;
 	}
-
 
 	return 0;
 }
