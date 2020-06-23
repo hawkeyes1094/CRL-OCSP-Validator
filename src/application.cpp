@@ -1,25 +1,4 @@
-// sudo apt-get install libssl-dev
-
-/*
-
-g++ -c -o Common.o Common.cpp
-g++ -c -o ChainFileFunctions.o ChainFileFunctions.cpp
-g++ -c -o CRLFunctions.o CRLFunctions.cpp
-g++ -c -o OCSPFunctions.o OCSPFunctions.cpp
-g++ -c -o application.o application.cpp
-g++ -o application Common.o ChainFileFunctions.o CRLFunctions.o OCSPFunctions.o application.o -lcrypto -lssl
-./application
-
-
-g++ -c -o Common.o Common.cpp && \
-g++ -c -o ChainFileFunctions.o ChainFileFunctions.cpp && \
-g++ -c -o CRLFunctions.o CRLFunctions.cpp && \
-g++ -c -o OCSPFunctions.o OCSPFunctions.cpp && \
-g++ -c -o application.o application.cpp && \
-g++ -o application Common.o ChainFileFunctions.o CRLFunctions.o OCSPFunctions.o application.o -lcrypto -lssl && \
-./application
-
-*/
+// Main driver program.
 
 #include "Common.h"
 #include "ChainFileFunctions.h"
