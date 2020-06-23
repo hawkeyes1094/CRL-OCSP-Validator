@@ -38,8 +38,6 @@ int main(int argc, char **argv)
 	OpenSSL_add_all_algorithms();
 	ERR_load_BIO_strings();
 
-	// setbuf(stdout, NULL);
-
 	// Display intro message.
 
 	std::cout << "\nThis is a tool to validate a certificate chain file against a given CRL.\n"
@@ -106,7 +104,7 @@ int main(int argc, char **argv)
 
 	int numberOfRevokedCeritficates = sk_X509_REVOKED_num(revokedStack); // Get the number of revoked certificates from the CRL.
 
-	// Extract serial numbers of all revoked certificates, and puts it in a map for fast access.
+	// Extract serial numbers of all revoked certificates, and put it in a map for fast access.
 
 	std::map<std::string, int> revokedSerialNumbers;
 	X509_REVOKED *revStackEntry = NULL;
@@ -114,7 +112,7 @@ int main(int argc, char **argv)
 	for (int i = 0; i < numberOfRevokedCeritficates; i++)
 	{
 		revStackEntry = sk_X509_REVOKED_value(revokedStack, i);						  //Pick one from the stack.
-		std::string thisSerialNumber = getRevokedSerialNumberFromX509(revStackEntry); // Extract it's serial number.
+		std::string thisSerialNumber = getRevokedSerialNumberFromX509(revStackEntry); // Extract its serial number.
 
 		revokedSerialNumbers[thisSerialNumber] = (i + 1); // Add its index to the revokedSerialNumbers map. (1 - indexed)
 	}
