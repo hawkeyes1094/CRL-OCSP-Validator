@@ -55,4 +55,4 @@ We have unit tested a few functions, and captured results as screenshots.
 The code and the screenshots can be found in test/unit_testing.
 To run the code, make a folder with all .cpp files (from 'src' directory) and all .h files (from 'include' directory).
 
-Then, add the path to the input file inside the test CPP files, and compile_run them using the commands provided at the top of these files.
+Then, add the path to the input file to the string inside the test CPP files, and compile+run them using the command provided at the top of these files.
